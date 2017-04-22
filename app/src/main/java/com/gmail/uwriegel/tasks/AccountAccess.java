@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -26,6 +27,17 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.tasks.TasksScopes;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 
 import pub.devrel.easypermissions.EasyPermissions;
@@ -91,7 +103,7 @@ public class AccountAccess {
         dialog.show();
     }
 
-    public void downloadAvatar() {
+    public void downloadAvatar(final IOnReady onReady) {
         String account = mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .setAccountName(account)
@@ -102,12 +114,47 @@ public class AccountAccess {
             .build();
 
         final OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(client);
+
+        class DownloadTask extends AsyncTask<String, Integer, Integer> {
+            @Override
+            protected Integer doInBackground(String... params) {
+                try {
+                    URL url = new URL(params[0]);
+                    HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+                    int responseCode = httpConnection.getResponseCode();
+
+                    FileOutputStream outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE);
+                    InputStream stream = httpConnection.getInputStream();
+                    byte[] bytes = new byte[20000];
+                    while (true) {
+                        int read = stream.read(bytes);
+                        if (read == -1)
+                            break;
+                        outputStream.write(bytes, 0, read);
+                    }
+                    outputStream.close();
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return 0;
+            }
+
+            protected void onPostExecute(Integer result) {
+                onReady.OnReady();
+            }
+        }
+
+        final DownloadTask downloadTask = new DownloadTask();
         pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
             @Override
             public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
                 GoogleSignInAccount acct = googleSignInResult.getSignInAccount();
-                Uri url = acct.getPhotoUrl();
+                final Uri uri = acct.getPhotoUrl();
                 Auth.GoogleSignInApi.signOut(client);
+                if (uri != null)
+                    downloadTask.execute(uri.toString());
             }
         });
         client.connect();
