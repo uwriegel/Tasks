@@ -6,14 +6,20 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.util.ExponentialBackOff;
@@ -22,6 +28,8 @@ import com.google.api.services.tasks.TasksScopes;
 import java.util.Arrays;
 
 import pub.devrel.easypermissions.EasyPermissions;
+
+import static android.support.v7.widget.AppCompatDrawableManager.get;
 
 /**
  * Created by urieg on 21.04.2017.
@@ -57,6 +65,8 @@ public class AccountAccess {
     }
 
     public void setAccountName(String accountName, String displayName) {
+        Auth.GoogleSignInApi.signOut(googleApiClient);
+        googleApiClient.stopAutoManage((FragmentActivity)mainActivity);
         SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(PREF_ACCOUNT_NAME, accountName);
@@ -78,6 +88,30 @@ public class AccountAccess {
                 connectionStatusCode,
                 MainActivity.REQUEST_GOOGLE_PLAY_SERVICES);
         dialog.show();
+    }
+
+    public void downloadAvatar() {
+        String account = mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .setAccountName(account)
+                .build();
+
+        final GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mainActivity)
+            .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+            .build();
+
+        final OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
+        googleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+            public void onConnected(@Nullable Bundle var1) {
+                GoogleSignInResult result = pendingResult.get();
+                GoogleSignInAccount acct = result.getSignInAccount();
+                Uri url = acct.getPhotoUrl();
+                Auth.GoogleSignInApi.signOut(googleApiClient);
+            }
+            public void onConnectionSuspended(int var1) {
+            }
+        });
+        googleApiClient.connect();
     }
 
     /**
