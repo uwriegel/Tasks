@@ -20,6 +20,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.util.ExponentialBackOff;
@@ -96,22 +97,20 @@ public class AccountAccess {
                 .setAccountName(account)
                 .build();
 
-        final GoogleApiClient googleApiClient = new GoogleApiClient.Builder(mainActivity)
+        final GoogleApiClient client = new GoogleApiClient.Builder(mainActivity)
             .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
             .build();
 
-        final OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
-        googleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-            public void onConnected(@Nullable Bundle var1) {
-                GoogleSignInResult result = pendingResult.get();
-                GoogleSignInAccount acct = result.getSignInAccount();
+        final OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(client);
+        pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
+            @Override
+            public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
+                GoogleSignInAccount acct = googleSignInResult.getSignInAccount();
                 Uri url = acct.getPhotoUrl();
-                Auth.GoogleSignInApi.signOut(googleApiClient);
-            }
-            public void onConnectionSuspended(int var1) {
+                Auth.GoogleSignInApi.signOut(client);
             }
         });
-        googleApiClient.connect();
+        client.connect();
     }
 
     /**
