@@ -70,6 +70,8 @@ public class MainActivity extends AppCompatActivity
 
                     TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
                     googleDisplay.setText(accountAccess.getDisplayName());
+
+                    accountAccess.downloadAvatar();
                 }
             }
         };
