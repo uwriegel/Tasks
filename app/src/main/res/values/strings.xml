@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Aufgaben</string>
+
+    <string name="navigation_drawer_open">Öffnet Navigations-Schublade</string>
+    <string name="navigation_drawer_close">Schließt Navigations-Schublade</string>
+
+    <string name="action_settings">Einstellungen</string>
+
+    <string name="google_account_access_needed">Diese App benötigt Zugriff auf Dein Google Konto (via Kontakte).</string>
+    <string name="google_account">Google-Konto</string>
+</resources>
