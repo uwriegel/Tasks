@@ -2,6 +2,7 @@ package com.gmail.uwriegel.tasks;
 
 import android.accounts.AccountManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,6 +22,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 
@@ -172,10 +176,15 @@ public class MainActivity extends AppCompatActivity
                 break;
             case REQUEST_ACCOUNT_PICKER:
                 if (resultCode == RESULT_OK && data != null && data.getExtras() != null) {
-                    String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-                    if (accountName != null) {
-                        accountAccess.setAccountName(accountName);
-                        initializeGoogleAccount();
+                    GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+                    if (result.isSuccess()) {
+                        // Signed in successfully, show authenticated UI.
+                        GoogleSignInAccount acct = result.getSignInAccount();
+                        String accountName = acct.getAccount().name;
+                        if (accountName != null) {
+                            accountAccess.setAccountName(accountName);
+                            initializeGoogleAccount();
+                        }
                     }
                 }
                 break;
@@ -188,19 +197,16 @@ public class MainActivity extends AppCompatActivity
 
     void initializeGoogleAccount() {
         try {
-            final TaskListsTask affe = new TaskListsTask();
-
+            final TaskListsTask taskListsTask = new TaskListsTask();
             accountAccess.initialize(new AccountAccess.IOnReady() {
                 @Override
                 public void OnReady() {
                     googleTasks = new GoogleTasks(accountAccess.getCredential());
-                    affe.execute(0);
-                    //new TaskListsTask().execute();
+                    taskListsTask.execute(0);
                 }
             });
         } catch (Exception e) {
-            String watt = e.toString();
-            String überflüssig = watt;
+            e.printStackTrace();
         }
     }
 
