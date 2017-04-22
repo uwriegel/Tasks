@@ -62,11 +62,15 @@ public class MainActivity extends AppCompatActivity
             public void onDrawerOpened(View drawerView)
             {
                 super.onDrawerOpened(drawerView);
-                TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
 
                 String name = accountAccess.getCredential().getSelectedAccountName();
-                if (name != null)
+                if (name != null) {
+                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
                     googleAccount.setText(name);
+
+                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
+                    googleDisplay.setText(accountAccess.getDisplayName());
+                }
             }
         };
         drawer.addDrawerListener(toggle);
@@ -182,7 +186,7 @@ public class MainActivity extends AppCompatActivity
                         GoogleSignInAccount acct = result.getSignInAccount();
                         String accountName = acct.getAccount().name;
                         if (accountName != null) {
-                            accountAccess.setAccountName(accountName);
+                            accountAccess.setAccountName(accountName, acct.getDisplayName());
                             initializeGoogleAccount();
                         }
                     }

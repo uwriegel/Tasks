@@ -37,6 +37,9 @@ public class AccountAccess {
         return credential;
     }
 
+    public String getDisplayName() { return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null); }
+
+
     public AccountAccess(Activity mainActivity) {
         this.mainActivity = mainActivity;
 
@@ -53,10 +56,11 @@ public class AccountAccess {
             onReady.OnReady();
     }
 
-    public void setAccountName(String accountName) {
+    public void setAccountName(String accountName, String displayName) {
         SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(PREF_ACCOUNT_NAME, accountName);
+        editor.putString(PREF_ACCOUNT_DISPLAYNAME, displayName);
         editor.apply();
         credential.setSelectedAccountName(accountName);
     }
@@ -134,6 +138,7 @@ public class AccountAccess {
     }
 
     private static final String PREF_ACCOUNT_NAME = "accountName";
+    private static final String PREF_ACCOUNT_DISPLAYNAME = "accountDisplayName";
     private static final String[] SCOPES = { TasksScopes.TASKS_READONLY };
 
     private Activity mainActivity;
