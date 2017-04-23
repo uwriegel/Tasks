@@ -3,6 +3,8 @@ package com.gmail.uwriegel.tasks;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,7 +16,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -72,24 +73,30 @@ public class MainActivity extends AppCompatActivity
                     TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
                     googleDisplay.setText(accountAccess.getDisplayName());
 
-                    accountAccess.downloadAvatar(new AccountAccess.IOnReady() {
-                        @Override
-                        public void OnReady() {
-                            File file = new File(getFilesDir(), "account.jpg");
-                            if (file.exists()) {
-                                Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                                ImageView myImage = (ImageView)findViewById(R.id.imageView);
-                                myImage.setImageBitmap(myBitmap);
-                            }
-                        }
-                    });
+                    ImageView myImage = (ImageView)findViewById(R.id.imageView);
+                    if (defaultPhotoDrawable == null)
+                        defaultPhotoDrawable = myImage.getDrawable();
+
+                    File file = new File(getFilesDir(), "account.jpg");
+                    if (file.exists()) {
+                        Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                        myImage.getDrawable();
+                        myImage.setImageBitmap(myBitmap);
+                    }
+                    else
+                        myImage.setImageDrawable(defaultPhotoDrawable);
                 }
 
-                LinearLayout layout = (LinearLayout)findViewById(R.id.id_nav_header);
+                final LinearLayout layout = (LinearLayout)findViewById(R.id.id_nav_header);
                 layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        accountAccess.startAccountChooser();
+                        ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
+                        myImage.setImageResource(R.drawable.dropup);
+                        // TODO: hier ein Callback übergeben, womit man (bei offener Schublade) Name, email und dann ImageURL setzen kann,
+                        // außerdem den Spinnerbutten wieder umdrehen, den man hier gedreht hat
+                        accountAccess.forceNewAccount();
+                        InitializeGoogle();
                     }
                 });
             }
@@ -101,7 +108,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         accountAccess = new AccountAccess(this);
-        new AccountTask().execute(this);
+        InitializeGoogle();
     }
 
     /**
@@ -200,19 +207,22 @@ public class MainActivity extends AppCompatActivity
                     initializeGoogleAccount();
                 break;
             case REQUEST_ACCOUNT_PICKER:
+                String accountName = null;
+                String accountDisplayName = null;
+                Uri photoUrl = null;
                 if (resultCode == RESULT_OK && data != null && data.getExtras() != null) {
                     GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
                     if (result.isSuccess()) {
                         // Signed in successfully, show authenticated UI.
                         GoogleSignInAccount acct = result.getSignInAccount();
-                        String accountName = acct.getAccount().name;
-                        if (accountName != null) {
-                            accountAccess.setAccountName(accountName, acct.getDisplayName());
-                            initializeGoogleAccount();
-                        }
+                        photoUrl = acct.getPhotoUrl();
+                        accountName = acct.getAccount().name;
+                        accountDisplayName = acct.getDisplayName();
                     }
                 }
-                break;
+                accountAccess.onAccountPicked(accountName, accountDisplayName, photoUrl);
+                if (accountName != null)
+                    initializeGoogleAccount();
             case REQUEST_AUTHORIZATION:
                 if (resultCode == RESULT_OK)
                     initializeGoogleAccount();
@@ -274,9 +284,13 @@ public class MainActivity extends AppCompatActivity
         // Do nothing.
     }
 
-    private class AccountTask extends AsyncTask<MainActivity, Integer, Integer> {
+    private void InitializeGoogle() {
+        new AccountTask().execute();
+    }
+
+    private class AccountTask extends AsyncTask<Integer, Integer, Integer> {
         @Override
-        protected Integer doInBackground(MainActivity... params) {
+        protected Integer doInBackground(Integer... params) {
             initializeGoogleAccount();
             return 0;
         }
@@ -311,6 +325,8 @@ public class MainActivity extends AppCompatActivity
         private IOException error;
     }
 
+    static final String TAG = "Tasks";
+
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
@@ -318,4 +334,5 @@ public class MainActivity extends AppCompatActivity
 
     private AccountAccess accountAccess;
     private GoogleTasks googleTasks;
+    private Drawable defaultPhotoDrawable;
 }

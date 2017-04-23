@@ -45,7 +45,7 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
         <ImageView
-            android:id="@+id/googleAccount"
+            android:id="@+id/googleAccountSpinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
