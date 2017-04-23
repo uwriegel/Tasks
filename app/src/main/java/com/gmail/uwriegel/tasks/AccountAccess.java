@@ -45,7 +45,8 @@ public class AccountAccess {
     }
 
     public interface IOnAccountChosen {
-        void OnAccountChosen();
+        void OnAccount(String account, String name);
+        void OnPhotoUrl();
     }
 
     public GoogleAccountCredential getCredential() {
@@ -70,8 +71,9 @@ public class AccountAccess {
             onReady.OnReady();
     }
 
-    public void forceNewAccount() {
+    public void forceNewAccount(IOnAccountChosen onAccountChosen) {
         forceNewAccount = true;
+        this.onAccountChosen = onAccountChosen;
     }
 
     public void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
@@ -84,8 +86,15 @@ public class AccountAccess {
             editor.putString(PREF_ACCOUNT_NAME, accountName);
             editor.putString(PREF_ACCOUNT_DISPLAYNAME, displayName);
             editor.apply();
+            if (onAccountChosen != null)
+                onAccountChosen.OnAccount(accountName, displayName);
             credential.setSelectedAccountName(accountName);
             downloadAvatar(photoUrl);
+        }
+        else {
+            if (onAccountChosen != null)
+                onAccountChosen.OnAccount(null, null);
+            onAccountChosen = null;
         }
     }
 
@@ -136,13 +145,20 @@ public class AccountAccess {
             }
 
             protected void onPostExecute(Integer result) {
-
+                if (onAccountChosen != null)
+                    onAccountChosen.OnPhotoUrl();
+                onAccountChosen = null;
             }
         }
 
         if (photoUri != null) {
             final DownloadTask downloadTask = new DownloadTask();
             downloadTask.execute(photoUri.toString());
+        }
+        else {
+            if (onAccountChosen != null)
+                onAccountChosen.OnPhotoUrl();
+            onAccountChosen = null;
         }
     }
 
@@ -211,4 +227,5 @@ public class AccountAccess {
 
     private GoogleApiClient googleApiClient;
     private boolean forceNewAccount;
+    private IOnAccountChosen onAccountChosen;
 }

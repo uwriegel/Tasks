@@ -73,29 +73,34 @@ public class MainActivity extends AppCompatActivity
                     TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
                     googleDisplay.setText(accountAccess.getDisplayName());
 
-                    ImageView myImage = (ImageView)findViewById(R.id.imageView);
-                    if (defaultPhotoDrawable == null)
-                        defaultPhotoDrawable = myImage.getDrawable();
-
-                    File file = new File(getFilesDir(), "account.jpg");
-                    if (file.exists()) {
-                        Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                        myImage.getDrawable();
-                        myImage.setImageBitmap(myBitmap);
-                    }
-                    else
-                        myImage.setImageDrawable(defaultPhotoDrawable);
+                    setPhotoUrl();
                 }
 
                 final LinearLayout layout = (LinearLayout)findViewById(R.id.id_nav_header);
                 layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
+                        final ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
                         myImage.setImageResource(R.drawable.dropup);
-                        // TODO: hier ein Callback übergeben, womit man (bei offener Schublade) Name, email und dann ImageURL setzen kann,
-                        // außerdem den Spinnerbutten wieder umdrehen, den man hier gedreht hat
-                        accountAccess.forceNewAccount();
+                        accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
+                            @Override
+                            public void OnAccount(String account, String name) {
+                                if (account != null) {
+                                    TextView googleAccount = (TextView) findViewById(R.id.textViewGoogleAccount);
+                                    googleAccount.setText(account);
+
+                                    TextView googleDisplay = (TextView) findViewById(R.id.textViewGoogleDisplayName);
+                                    googleDisplay.setText(name);
+                                }
+
+                                myImage.setImageResource(R.drawable.dropdown);
+                            }
+
+                            @Override
+                            public void OnPhotoUrl() {
+                                setPhotoUrl();
+                            }
+                        });
                         InitializeGoogle();
                     }
                 });
@@ -282,6 +287,21 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPermissionsDenied(int requestCode, List<String> list) {
         // Do nothing.
+    }
+
+    private void setPhotoUrl() {
+        ImageView myImage = (ImageView)findViewById(R.id.imageView);
+        if (defaultPhotoDrawable == null)
+            defaultPhotoDrawable = myImage.getDrawable();
+
+        File file = new File(getFilesDir(), "account.jpg");
+        if (file.exists()) {
+            Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+            myImage.getDrawable();
+            myImage.setImageBitmap(myBitmap);
+        }
+        else
+            myImage.setImageDrawable(defaultPhotoDrawable);
     }
 
     private void InitializeGoogle() {
