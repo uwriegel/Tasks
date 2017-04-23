@@ -88,6 +88,26 @@ public class AccountAccess {
         credential.setSelectedAccountName(accountName);
     }
 
+    public void startAccountChooser() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        // Build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
+        googleApiClient = new GoogleApiClient.Builder(mainActivity)
+                .enableAutoManage((FragmentActivity)mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        int u = 0;
+                        int uu = u;
+                    }
+                })
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
+        mainActivity.startActivityForResult(signInIntent, MainActivity.REQUEST_ACCOUNT_PICKER);
+    }
+
     /**
      * Display an error dialog showing that Google Play Services is missing
      * or out of date.
@@ -195,26 +215,6 @@ public class AccountAccess {
             // Request the GET_ACCOUNTS permission via a user dialog
             EasyPermissions.requestPermissions(mainActivity, mainActivity.getString(R.string.google_account_access_needed),
                     MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
-    }
-
-    private void startAccountChooser() {
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
-        // Build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
-        googleApiClient = new GoogleApiClient.Builder(mainActivity)
-                .enableAutoManage((FragmentActivity)mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        int u = 0;
-                        int uu = u;
-                    }
-                })
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
-        mainActivity.startActivityForResult(signInIntent, MainActivity.REQUEST_ACCOUNT_PICKER);
     }
 
     private static final String PREF_ACCOUNT_NAME = "accountName";
