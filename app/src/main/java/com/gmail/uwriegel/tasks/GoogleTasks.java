@@ -18,12 +18,12 @@ import java.util.List;
  * Verbunden mit dem Google API-Projekt "Aufgaben"
  */
 
-public class GoogleTasks {
-    public GoogleTasks(GoogleAccountCredential credential) {
+class GoogleTasks {
+    GoogleTasks(GoogleAccountCredential credential) {
         this.credential = credential;
     }
 
-    public List<String> getTaskLists() throws IOException {
+    List<String> getTaskLists() throws IOException {
         HttpTransport transport = AndroidHttp.newCompatibleTransport();
         JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
         com.google.api.services.tasks.Tasks service = new com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, credential)
@@ -32,7 +32,7 @@ public class GoogleTasks {
 
         List<String> taskListInfo = new ArrayList<String>();
         TaskLists result = service.tasklists().list()
-                .setMaxResults(Long.valueOf(10))
+                .setMaxResults(10L)
                 .execute();
         List<TaskList> tasklists = result.getItems();
         return taskListInfo;

@@ -38,31 +38,31 @@ import static com.gmail.uwriegel.tasks.MainActivity.TAG;
  * Created by urieg on 21.04.2017.
  */
 
-public class AccountAccess {
+class AccountAccess {
 
-    public interface IOnReady {
+    interface IOnReady {
         void OnReady();
     }
 
-    public interface IOnAccountChosen {
+    interface IOnAccountChosen {
         void OnAccount(String account, String name);
         void OnPhotoUrl();
     }
 
-    public GoogleAccountCredential getCredential() {
+    GoogleAccountCredential getCredential() {
         return credential;
     }
 
-    public String getDisplayName() { return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null); }
+    String getDisplayName() { return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null); }
 
-    public AccountAccess(Activity mainActivity) {
+    AccountAccess(Activity mainActivity) {
         this.mainActivity = mainActivity;
 
         // Initialize credentials and service object.
         credential = GoogleAccountCredential.usingOAuth2(mainActivity.getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
     }
 
-    public void initialize(IOnReady onReady) {
+    void initialize(IOnReady onReady) {
         if (!isGooglePlayServicesAvailable())
             acquireGooglePlayServices();
         else if (forceNewAccount || credential.getSelectedAccountName() == null)
@@ -71,12 +71,12 @@ public class AccountAccess {
             onReady.OnReady();
     }
 
-    public void forceNewAccount(IOnAccountChosen onAccountChosen) {
+    void forceNewAccount(IOnAccountChosen onAccountChosen) {
         forceNewAccount = true;
         this.onAccountChosen = onAccountChosen;
     }
 
-    public void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
+    void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
         Auth.GoogleSignInApi.signOut(googleApiClient);
         googleApiClient.stopAutoManage((FragmentActivity)mainActivity);
         forceNewAccount = false;
@@ -104,7 +104,7 @@ public class AccountAccess {
      * @param connectionStatusCode code describing the presence (or lack of)
      *     Google Play Services on this device.
      */
-    public void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
+    void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
         Dialog dialog = apiAvailability.getErrorDialog(
                 mainActivity,

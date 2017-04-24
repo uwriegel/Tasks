@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -320,8 +320,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected List<String> doInBackground(Integer... params) {
             try {
-                List<String> result = googleTasks.getTaskLists();
-                return result;
+                return googleTasks.getTaskLists();
             } catch (IOException e) {
                 error = e;
                 cancel(true);
