@@ -26,7 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -36,8 +35,8 @@ import static com.gmail.uwriegel.tasks.MainActivity.TAG;
 
 /**
  * Created by urieg on 21.04.2017.
+ *
  */
-
 class AccountAccess {
 
     interface IOnReady {
@@ -113,6 +112,7 @@ class AccountAccess {
         dialog.show();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void downloadAvatar(Uri photoUri) {
         File file = new File(mainActivity.getFilesDir(), "account.jpg");
         if (file.exists())
@@ -125,19 +125,18 @@ class AccountAccess {
                     URL url = new URL(params[0]);
                     HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
                     int responseCode = httpConnection.getResponseCode();
-
-                    FileOutputStream outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE);
-                    InputStream stream = httpConnection.getInputStream();
-                    byte[] bytes = new byte[20000];
-                    while (true) {
-                        int read = stream.read(bytes);
-                        if (read == -1)
-                            break;
-                        outputStream.write(bytes, 0, read);
+                    if (responseCode == 200) {
+                        FileOutputStream outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE);
+                        InputStream stream = httpConnection.getInputStream();
+                        byte[] bytes = new byte[20000];
+                        while (true) {
+                            int read = stream.read(bytes);
+                            if (read == -1)
+                                break;
+                            outputStream.write(bytes, 0, read);
+                        }
+                        outputStream.close();
                     }
-                    outputStream.close();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

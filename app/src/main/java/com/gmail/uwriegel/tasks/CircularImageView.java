@@ -1,8 +1,8 @@
 package com.gmail.uwriegel.tasks;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
@@ -12,9 +12,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 
-public class CircularImageView extends ImageView
+public class CircularImageView extends android.support.v7.widget.AppCompatImageView
 {
 
     public CircularImageView( Context context )

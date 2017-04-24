@@ -16,6 +16,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -204,11 +205,9 @@ public class MainActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case REQUEST_GOOGLE_PLAY_SERVICES:
-                if (resultCode != RESULT_OK) {
-                    // mOutputText.setText(
-                    //                            "This app requires Google Play Services. Please install " +
-                    //                "Google Play Services on your device and relaunch this app.");
-                } else
+                if (resultCode != RESULT_OK)
+                    Log.w(TAG, "This app requires Google Play Services. Please install Google Play Services on your device and relaunch this app.");
+                else
                     initializeGoogleAccount();
                 break;
             case REQUEST_ACCOUNT_PICKER:
@@ -220,9 +219,11 @@ public class MainActivity extends AppCompatActivity
                     if (result.isSuccess()) {
                         // Signed in successfully, show authenticated UI.
                         GoogleSignInAccount acct = result.getSignInAccount();
-                        photoUrl = acct.getPhotoUrl();
-                        accountName = acct.getAccount().name;
-                        accountDisplayName = acct.getDisplayName();
+                        if (acct != null) {
+                            photoUrl = acct.getPhotoUrl();
+                            accountName = acct.getAccount().name;
+                            accountDisplayName = acct.getDisplayName();
+                        }
                     }
                 }
                 accountAccess.onAccountPicked(accountName, accountDisplayName, photoUrl);

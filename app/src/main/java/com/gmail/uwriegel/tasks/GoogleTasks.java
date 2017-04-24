@@ -30,7 +30,7 @@ class GoogleTasks {
             .setApplicationName("Aufgaben")
             .build();
 
-        List<String> taskListInfo = new ArrayList<String>();
+        List<String> taskListInfo = new ArrayList<>();
         TaskLists result = service.tasklists().list()
                 .setMaxResults(10L)
                 .execute();
