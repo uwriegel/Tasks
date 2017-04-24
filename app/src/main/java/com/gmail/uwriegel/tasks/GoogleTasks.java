@@ -23,19 +23,23 @@ class GoogleTasks {
         this.credential = credential;
     }
 
-    List<String> getTaskLists() throws IOException {
+    List<Tasklist> getTaskLists() throws IOException {
         HttpTransport transport = AndroidHttp.newCompatibleTransport();
         JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
         com.google.api.services.tasks.Tasks service = new com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, credential)
             .setApplicationName("Aufgaben")
             .build();
 
-        List<String> taskListInfo = new ArrayList<>();
         TaskLists result = service.tasklists().list()
                 .setMaxResults(10L)
                 .execute();
         List<TaskList> tasklists = result.getItems();
-        return taskListInfo;
+
+        List<Tasklist> resultList = new ArrayList<>();
+        for (TaskList tasklist : tasklists) {
+            resultList.add(new Tasklist(tasklist.getId(), tasklist.getTitle()));
+        }
+        return resultList;
     }
 
     private GoogleAccountCredential credential;

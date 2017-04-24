@@ -229,6 +229,7 @@ public class MainActivity extends AppCompatActivity
                 accountAccess.onAccountPicked(accountName, accountDisplayName, photoUrl);
                 if (accountName != null)
                     initializeGoogleAccount();
+                break;
             case REQUEST_AUTHORIZATION:
                 if (resultCode == RESULT_OK)
                     initializeGoogleAccount();
@@ -317,9 +318,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private class TaskListsTask extends AsyncTask<Integer, Integer, List<String>> {
+    private class TaskListsTask extends AsyncTask<Integer, Integer, List<Tasklist>> {
         @Override
-        protected List<String> doInBackground(Integer... params) {
+        protected List<Tasklist> doInBackground(Integer... params) {
             try {
                 return googleTasks.getTaskLists();
             } catch (IOException e) {
@@ -339,6 +340,16 @@ public class MainActivity extends AppCompatActivity
                     startActivityForResult(((UserRecoverableAuthIOException)error).getIntent(), REQUEST_AUTHORIZATION);
                 else
                     error.printStackTrace();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Tasklist> tasklists) {
+            super.onPostExecute(tasklists);
+            for (Tasklist t: tasklists) {
+                String affe1 = t.getID();
+                String affe2 = t.getTitle();
+                String nix = affe1;
             }
         }
 
