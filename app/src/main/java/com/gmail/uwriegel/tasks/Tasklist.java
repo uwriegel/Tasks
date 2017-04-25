@@ -2,6 +2,8 @@ package com.gmail.uwriegel.tasks;
 
 /**
  * Created by urieg on 24.04.2017.
+ *
+ * Represents a Google tasklist
  */
 class Tasklist {
     String getTitle() {
@@ -12,7 +14,7 @@ class Tasklist {
     String getID() {
         return id;
     }
-    String id;
+    private String id;
 
     Tasklist(String id, String title) {
         this.id = id;
