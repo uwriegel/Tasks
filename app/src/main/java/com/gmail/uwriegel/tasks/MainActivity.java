@@ -30,6 +30,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -346,10 +350,31 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(List<Tasklist> tasklists) {
             super.onPostExecute(tasklists);
+
+            JSONArray jsonArray = new JSONArray();
             for (Tasklist t: tasklists) {
-                String affe1 = t.getID();
-                String affe2 = t.getTitle();
-                String nix = affe1;
+                JSONObject jo = new JSONObject();
+                try {
+                    jo.put("name", t.getTitle());
+                    jo.put("id", t.getID());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                jsonArray.put(jo);
+            }
+            String taskJson = jsonArray.toString();
+
+            try {
+                JSONArray ja = new JSONArray(taskJson);
+                int length = ja.length();
+                for (int i = 0; i < length; i++) {
+                    JSONObject jo = ja.getJSONObject(i);
+                    String name = jo.getString("name");
+                    String id = jo.getString("id");
+                    int h = 9;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
 
