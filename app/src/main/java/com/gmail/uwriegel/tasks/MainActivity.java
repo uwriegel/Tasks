@@ -1,6 +1,8 @@
 package com.gmail.uwriegel.tasks;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -19,6 +21,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,6 +32,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.services.tasks.model.TaskList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -96,6 +100,8 @@ public class MainActivity extends AppCompatActivity
 
                                     TextView googleDisplay = (TextView) findViewById(R.id.textViewGoogleDisplayName);
                                     googleDisplay.setText(name);
+
+                                    clearNavigationDrawer(null);
                                 }
 
                                 myImage.setImageResource(R.drawable.dropdown);
@@ -175,23 +181,59 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void clearNavigationDrawer(Menu menu) {
+        if (menu == null) {
+            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+            menu = navigationView.getMenu();
+        }
+        menu.clear();
+    }
+
+    private void initializeNavigationDrawer()
+    {
+        NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        clearNavigationDrawer(menu);
+
+        String tasklistJson = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
+        int id = MENU_TASKLISTS_START_ID;
+        try {
+            JSONArray ja = new JSONArray(tasklistJson);
+            int length = ja.length();
+            for (int i = 0; i < length; i++) {
+                JSONObject jo = ja.getJSONObject(i);
+//                String tasklistId = jo.getString("id");
+
+                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, jo.getString("name"));
+                mi.setCheckable(true);
+                mi.setIcon(R.drawable.ic_list);
+//                if (activeTasklist != null && activeTasklist.compareTo(tl.getId()) == 0)
+//                {
+//                    mi.setChecked(true);
+//                    setTitle(mi.getTitle());
+//                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+//        if (activeTasklist != null)
+//        {
+//            Intent intent = new Intent(this, UpdateService.class);
+//            intent.putExtra(UpdateService.ACTION, UpdateService.ACTION_TASKLISTS);
+//            startService(intent);
+//        }
+//        else
+//        {
+//            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//            drawer.openDrawer(navigationView);
+//        }
     }
 
     /**
@@ -352,30 +394,24 @@ public class MainActivity extends AppCompatActivity
             super.onPostExecute(tasklists);
 
             JSONArray jsonArray = new JSONArray();
-            for (Tasklist t: tasklists) {
-                JSONObject jo = new JSONObject();
+            for (Tasklist taskList: tasklists) {
+                JSONObject jsonObject = new JSONObject();
                 try {
-                    jo.put("name", t.getTitle());
-                    jo.put("id", t.getID());
+                    jsonObject.put("name", taskList.getTitle());
+                    jsonObject.put("id", taskList.getID());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                jsonArray.put(jo);
+                jsonArray.put(jsonObject);
             }
-            String taskJson = jsonArray.toString();
 
-            try {
-                JSONArray ja = new JSONArray(taskJson);
-                int length = ja.length();
-                for (int i = 0; i < length; i++) {
-                    JSONObject jo = ja.getJSONObject(i);
-                    String name = jo.getString("name");
-                    String id = jo.getString("id");
-                    int h = 9;
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            String taskJson = jsonArray.toString();
+            SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PREF_TASKLISTS, taskJson);
+            editor.apply();
+
+            initializeNavigationDrawer();
         }
 
         private IOException error;
@@ -387,6 +423,10 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
+
+    private static final String PREF_TASKLISTS = "tasklists";
+    private static final int MENU_GROUP_TASKLISTS = 200;
+    private static final int MENU_TASKLISTS_START_ID = 2000;
 
     private AccountAccess accountAccess;
     private GoogleTasks googleTasks;
