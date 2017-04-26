@@ -180,7 +180,24 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        if (id >= MENU_TASKLISTS_START_ID) {
+            try {
+                Tasklist[] tasklists = getTasklists();
+                int index = id - MENU_TASKLISTS_START_ID;
+                Tasklist tasklist = tasklists[index];
 
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", tasklist.getTitle());
+                jsonObject.put("id", tasklist.getID());
+
+                SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(PREF_SELECTED_TASKLIST, jsonObject.toString());
+                editor.apply();
+            } catch (JSONException je) {
+                je.printStackTrace();
+            }
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -201,16 +218,11 @@ public class MainActivity extends AppCompatActivity
         Menu menu = navigationView.getMenu();
         clearNavigationDrawer(menu);
 
-        String tasklistJson = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
-        int id = MENU_TASKLISTS_START_ID;
         try {
-            JSONArray ja = new JSONArray(tasklistJson);
-            int length = ja.length();
-            for (int i = 0; i < length; i++) {
-                JSONObject jo = ja.getJSONObject(i);
-//                String tasklistId = jo.getString("id");
-
-                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, jo.getString("name"));
+            Tasklist[] tasklists = getTasklists();
+            int id = MENU_TASKLISTS_START_ID;
+            for (Tasklist tasklist: tasklists) {
+                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.getTitle());
                 mi.setCheckable(true);
                 mi.setIcon(R.drawable.ic_list);
 //                if (activeTasklist != null && activeTasklist.compareTo(tl.getId()) == 0)
@@ -219,9 +231,10 @@ public class MainActivity extends AppCompatActivity
 //                    setTitle(mi.getTitle());
 //                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } catch (JSONException je) {
+            je.printStackTrace();
         }
+
 
 //        if (activeTasklist != null)
 //        {
@@ -283,7 +296,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    void initializeGoogleAccount() {
+    private void initializeGoogleAccount() {
         try {
             final TaskListsTask taskListsTask = new TaskListsTask();
             accountAccess.initialize(new AccountAccess.IOnReady() {
@@ -364,6 +377,20 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private Tasklist[] getTasklists() throws JSONException {
+        String tasklistJson = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
+        JSONArray ja = new JSONArray(tasklistJson);
+        int length = ja.length();
+        Tasklist[] result = new Tasklist[length];
+        for (int i = 0; i < length; i++) {
+            JSONObject jo = ja.getJSONObject(i);
+            String title = jo.getString("name");
+            String id = jo.getString("id");
+            result[i] = new Tasklist(id, title);
+        }
+        return result;
+    }
+
     private class TaskListsTask extends AsyncTask<Integer, Integer, List<Tasklist>> {
         @Override
         protected List<Tasklist> doInBackground(Integer... params) {
@@ -425,6 +452,7 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
     private static final String PREF_TASKLISTS = "tasklists";
+    private static final String PREF_SELECTED_TASKLIST = "selectedTasklist";
     private static final int MENU_GROUP_TASKLISTS = 200;
     private static final int MENU_TASKLISTS_START_ID = 2000;
 
