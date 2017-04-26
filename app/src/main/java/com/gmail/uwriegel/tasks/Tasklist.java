@@ -2,7 +2,7 @@ package com.gmail.uwriegel.tasks;
 
 /**
  * Created by urieg on 24.04.2017.
- *
+ * <p>
  * Represents a Google tasklist
  */
 class Tasklist {
@@ -19,6 +19,6 @@ class Tasklist {
         return id;
     }
 
-    private String title;
-    private String id;
+    private final String title;
+    private final String id;
 }

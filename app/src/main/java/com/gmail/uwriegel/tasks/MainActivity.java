@@ -65,29 +65,27 @@ public class MainActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        {
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
-            public void onDrawerOpened(View drawerView)
-            {
+            public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
 
                 String name = accountAccess.getCredential().getSelectedAccountName();
                 if (name != null) {
-                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
+                    TextView googleAccount = (TextView) findViewById(R.id.textViewGoogleAccount);
                     googleAccount.setText(name);
 
-                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
+                    TextView googleDisplay = (TextView) findViewById(R.id.textViewGoogleDisplayName);
                     googleDisplay.setText(accountAccess.getDisplayName());
 
                     setPhotoUrl();
                 }
 
-                final LinearLayout layout = (LinearLayout)findViewById(R.id.id_nav_header);
+                final LinearLayout layout = (LinearLayout) findViewById(R.id.id_nav_header);
                 layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        final ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
+                        final ImageView myImage = (ImageView) findViewById(R.id.googleAccountSpinner);
                         myImage.setImageResource(R.drawable.dropup);
                         accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
                             @Override
@@ -127,11 +125,12 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Respond to requests for permissions at runtime for API 23 and above.
-     * @param requestCode The request code passed in
-     *     requestPermissions(android.app.Activity, String, int, String[])
-     * @param permissions The requested permissions. Never null.
+     *
+     * @param requestCode  The request code passed in
+     *                     requestPermissions(android.app.Activity, String, int, String[])
+     * @param permissions  The requested permissions. Never null.
      * @param grantResults The grant results for the corresponding permissions
-     *     which is either PERMISSION_GRANTED or PERMISSION_DENIED. Never null.
+     *                     which is either PERMISSION_GRANTED or PERMISSION_DENIED. Never null.
      */
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -210,16 +209,15 @@ public class MainActivity extends AppCompatActivity
         menu.clear();
     }
 
-    private void initializeNavigationDrawer()
-    {
-        NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
+    private void initializeNavigationDrawer() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         Menu menu = navigationView.getMenu();
         clearNavigationDrawer(menu);
 
         try {
             Tasklist[] tasklists = getTasklists();
             int id = MENU_TASKLISTS_START_ID;
-            for (Tasklist tasklist: tasklists) {
+            for (Tasklist tasklist : tasklists) {
                 MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.getTitle());
                 mi.setCheckable(true);
                 mi.setIcon(R.drawable.ic_list);
@@ -251,11 +249,12 @@ public class MainActivity extends AppCompatActivity
      * Called when an activity launched here (specifically, AccountPicker
      * and authorization) exits, giving you the requestCode you started it with,
      * the resultCode it returned, and any additional data from it.
+     *
      * @param requestCode code indicating which activity result is incoming.
-     * @param resultCode code indicating the result of the incoming
-     *     activity result.
-     * @param data Intent (containing result data) returned by incoming
-     *     activity result.
+     * @param resultCode  code indicating the result of the incoming
+     *                    activity result.
+     * @param data        Intent (containing result data) returned by incoming
+     *                    activity result.
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -327,9 +326,10 @@ public class MainActivity extends AppCompatActivity
     /**
      * Callback for when a permission is granted using the EasyPermissions
      * library.
+     *
      * @param requestCode The request code associated with the requested
-     *         permission
-     * @param list The requested permission list. Never null.
+     *                    permission
+     * @param list        The requested permission list. Never null.
      */
     @Override
     public void onPermissionsGranted(int requestCode, List<String> list) {
@@ -339,9 +339,10 @@ public class MainActivity extends AppCompatActivity
     /**
      * Callback for when a permission is denied using the EasyPermissions
      * library.
+     *
      * @param requestCode The request code associated with the requested
-     *         permission
-     * @param list The requested permission list. Never null.
+     *                    permission
+     * @param list        The requested permission list. Never null.
      */
     @Override
     public void onPermissionsDenied(int requestCode, List<String> list) {
@@ -349,7 +350,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setPhotoUrl() {
-        ImageView myImage = (ImageView)findViewById(R.id.imageView);
+        ImageView myImage = (ImageView) findViewById(R.id.imageView);
         if (defaultPhotoDrawable == null)
             defaultPhotoDrawable = myImage.getDrawable();
 
@@ -358,8 +359,7 @@ public class MainActivity extends AppCompatActivity
             Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
             myImage.getDrawable();
             myImage.setImageBitmap(myBitmap);
-        }
-        else
+        } else
             myImage.setImageDrawable(defaultPhotoDrawable);
     }
 
@@ -405,10 +405,10 @@ public class MainActivity extends AppCompatActivity
         protected void onCancelled() {
             if (error != null) {
                 if (error instanceof GooglePlayServicesAvailabilityIOException)
-                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException)error)
-                                    .getConnectionStatusCode());
+                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException) error)
+                            .getConnectionStatusCode());
                 else if (error instanceof UserRecoverableAuthIOException)
-                    startActivityForResult(((UserRecoverableAuthIOException)error).getIntent(), REQUEST_AUTHORIZATION);
+                    startActivityForResult(((UserRecoverableAuthIOException) error).getIntent(), REQUEST_AUTHORIZATION);
                 else
                     error.printStackTrace();
             }
@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity
             super.onPostExecute(tasklists);
 
             JSONArray jsonArray = new JSONArray();
-            for (Tasklist taskList: tasklists) {
+            for (Tasklist taskList : tasklists) {
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("name", taskList.getTitle());
@@ -445,7 +445,7 @@ public class MainActivity extends AppCompatActivity
     static final String TAG = "Tasks";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
-    static final int REQUEST_AUTHORIZATION = 1001;
+    private static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 

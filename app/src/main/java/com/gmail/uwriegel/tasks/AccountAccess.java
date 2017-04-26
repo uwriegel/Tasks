@@ -35,7 +35,6 @@ import static com.gmail.uwriegel.tasks.MainActivity.TAG;
 
 /**
  * Created by urieg on 21.04.2017.
- *
  */
 class AccountAccess {
 
@@ -50,7 +49,9 @@ class AccountAccess {
         return credential;
     }
 
-    String getDisplayName() { return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null); }
+    String getDisplayName() {
+        return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null);
+    }
 
     void initialize(IOnReady onReady) {
         if (!isGooglePlayServicesAvailable())
@@ -68,7 +69,7 @@ class AccountAccess {
 
     void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
         Auth.GoogleSignInApi.signOut(googleApiClient);
-        googleApiClient.stopAutoManage((FragmentActivity)mainActivity);
+        googleApiClient.stopAutoManage((FragmentActivity) mainActivity);
         forceNewAccount = false;
         if (accountName != null) {
             SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
@@ -80,8 +81,7 @@ class AccountAccess {
                 onAccountChosen.OnAccount(accountName, displayName);
             credential.setSelectedAccountName(accountName);
             downloadAvatar(photoUrl);
-        }
-        else {
+        } else {
             if (onAccountChosen != null)
                 onAccountChosen.OnAccount(null, null);
             onAccountChosen = null;
@@ -91,8 +91,9 @@ class AccountAccess {
     /**
      * Display an error dialog showing that Google Play Services is missing
      * or out of date.
+     *
      * @param connectionStatusCode code describing the presence (or lack of)
-     *     Google Play Services on this device.
+     *                             Google Play Services on this device.
      */
     void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
@@ -144,8 +145,7 @@ class AccountAccess {
         if (photoUri != null) {
             final DownloadTask downloadTask = new DownloadTask();
             downloadTask.execute(photoUri.toString());
-        }
-        else {
+        } else {
             if (onAccountChosen != null)
                 onAccountChosen.OnPhotoUrl();
             onAccountChosen = null;
@@ -158,7 +158,7 @@ class AccountAccess {
                 .build();
         // Build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
         googleApiClient = new GoogleApiClient.Builder(mainActivity)
-                .enableAutoManage((FragmentActivity)mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
+                .enableAutoManage((FragmentActivity) mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
                         Log.w(TAG, "Could not choose account: connection failed");
@@ -173,8 +173,9 @@ class AccountAccess {
 
     /**
      * Check that Google Play services APK is installed and up to date.
+     *
      * @return true if Google Play Services is available and up to
-     *     date on this device; false otherwise.
+     * date on this device; false otherwise.
      */
     private boolean isGooglePlayServicesAvailable() {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
@@ -199,8 +200,7 @@ class AccountAccess {
             if (!forceNewAccount && accountName != null) {
                 credential.setSelectedAccountName(accountName);
                 initialize(onReady);
-            }
-            else
+            } else
                 startChoosingAccount();
         } else
             // Request the GET_ACCOUNTS permission via a user dialog
@@ -214,14 +214,16 @@ class AccountAccess {
 
     interface IOnAccountChosen {
         void OnAccount(String account, String name);
+
         void OnPhotoUrl();
     }
+
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String PREF_ACCOUNT_DISPLAYNAME = "accountDisplayName";
-    private static final String[] SCOPES = { TasksScopes.TASKS_READONLY };
+    private static final String[] SCOPES = {TasksScopes.TASKS_READONLY};
 
-    private Activity mainActivity;
-    private GoogleAccountCredential credential;
+    private final Activity mainActivity;
+    private final GoogleAccountCredential credential;
 
     private GoogleApiClient googleApiClient;
     private boolean forceNewAccount;

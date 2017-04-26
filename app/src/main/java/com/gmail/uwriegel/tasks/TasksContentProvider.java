@@ -28,7 +28,7 @@ class TasksContentProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        tasksSQLiteOpenHelper = new TasksSQLiteOpenHelper(getContext(),
+        TasksSQLiteOpenHelper tasksSQLiteOpenHelper = new TasksSQLiteOpenHelper(getContext(),
                 TasksSQLiteOpenHelper.DATABASE_NAME, null,
                 TasksSQLiteOpenHelper.DATABASE_VERSION);
         return true;
@@ -112,5 +112,4 @@ class TasksContentProvider extends ContentProvider {
         uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasklists/#", SINGLE_ROW);
     }
 
-    private TasksSQLiteOpenHelper tasksSQLiteOpenHelper;
 }

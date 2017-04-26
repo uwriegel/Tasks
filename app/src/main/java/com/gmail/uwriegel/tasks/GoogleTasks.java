@@ -42,5 +42,5 @@ class GoogleTasks {
         return resultList;
     }
 
-    private GoogleAccountCredential credential;
+    private final GoogleAccountCredential credential;
 }
