@@ -6,18 +6,19 @@ package com.gmail.uwriegel.tasks;
  * Represents a Google tasklist
  */
 class Tasklist {
-    String getTitle() {
-        return title;
-    }
-    private String title;
-
-    String getID() {
-        return id;
-    }
-    private String id;
-
     Tasklist(String id, String title) {
         this.id = id;
         this.title = title;
     }
+
+    String getTitle() {
+        return title;
+    }
+
+    String getID() {
+        return id;
+    }
+
+    private String title;
+    private String id;
 }

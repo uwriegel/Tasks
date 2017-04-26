@@ -21,7 +21,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,7 +31,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.services.tasks.model.TaskList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -369,14 +367,6 @@ public class MainActivity extends AppCompatActivity
         new AccountTask().execute();
     }
 
-    private class AccountTask extends AsyncTask<Integer, Integer, Integer> {
-        @Override
-        protected Integer doInBackground(Integer... params) {
-            initializeGoogleAccount();
-            return 0;
-        }
-    }
-
     private Tasklist[] getTasklists() throws JSONException {
         String tasklistJson = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
         JSONArray ja = new JSONArray(tasklistJson);
@@ -389,6 +379,14 @@ public class MainActivity extends AppCompatActivity
             result[i] = new Tasklist(id, title);
         }
         return result;
+    }
+
+    private class AccountTask extends AsyncTask<Integer, Integer, Integer> {
+        @Override
+        protected Integer doInBackground(Integer... params) {
+            initializeGoogleAccount();
+            return 0;
+        }
     }
 
     private class TaskListsTask extends AsyncTask<Integer, Integer, List<Tasklist>> {

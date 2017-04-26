@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * Created by urieg on 21.04.2017.
- *
+ * <p>
  * Verbunden mit dem Google API-Projekt "Aufgaben"
  */
 
@@ -27,8 +27,8 @@ class GoogleTasks {
         HttpTransport transport = AndroidHttp.newCompatibleTransport();
         JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
         com.google.api.services.tasks.Tasks service = new com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, credential)
-            .setApplicationName("Aufgaben")
-            .build();
+                .setApplicationName("Aufgaben")
+                .build();
 
         TaskLists result = service.tasklists().list()
                 .setMaxResults(10L)

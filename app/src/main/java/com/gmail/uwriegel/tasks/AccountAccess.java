@@ -39,13 +39,11 @@ import static com.gmail.uwriegel.tasks.MainActivity.TAG;
  */
 class AccountAccess {
 
-    interface IOnReady {
-        void OnReady();
-    }
+    AccountAccess(Activity mainActivity) {
+        this.mainActivity = mainActivity;
 
-    interface IOnAccountChosen {
-        void OnAccount(String account, String name);
-        void OnPhotoUrl();
+        // Initialize credentials and service object.
+        credential = GoogleAccountCredential.usingOAuth2(mainActivity.getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
     }
 
     GoogleAccountCredential getCredential() {
@@ -53,13 +51,6 @@ class AccountAccess {
     }
 
     String getDisplayName() { return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null); }
-
-    AccountAccess(Activity mainActivity) {
-        this.mainActivity = mainActivity;
-
-        // Initialize credentials and service object.
-        credential = GoogleAccountCredential.usingOAuth2(mainActivity.getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
-    }
 
     void initialize(IOnReady onReady) {
         if (!isGooglePlayServicesAvailable())
@@ -217,6 +208,14 @@ class AccountAccess {
                     MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
     }
 
+    interface IOnReady {
+        void OnReady();
+    }
+
+    interface IOnAccountChosen {
+        void OnAccount(String account, String name);
+        void OnPhotoUrl();
+    }
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String PREF_ACCOUNT_DISPLAYNAME = "accountDisplayName";
     private static final String[] SCOPES = { TasksScopes.TASKS_READONLY };
