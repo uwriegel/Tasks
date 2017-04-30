@@ -27,35 +27,13 @@ public class CircularImageView extends android.support.v7.widget.AppCompatImageV
         super(context, attrs, defStyle);
     }
 
-    @Override
-    protected void onDraw(@NonNull Canvas canvas) {
-
-        Drawable drawable = getDrawable();
-
-        if (drawable == null) {
-            return;
-        }
-
-        if (getWidth() == 0 || getHeight() == 0) {
-            return;
-        }
-        Bitmap b = ((BitmapDrawable) drawable).getBitmap();
-        Bitmap bitmap = b.copy(Bitmap.Config.ARGB_8888, true);
-
-        int w = getWidth()/*, h = getHeight( )*/;
-
-        Bitmap roundBitmap = getCroppedBitmap(bitmap, w);
-        canvas.drawBitmap(roundBitmap, 0, 0, null);
-
-    }
-
     private static Bitmap getCroppedBitmap(@NonNull Bitmap bmp, int radius) {
         Bitmap bitmap;
 
         if (bmp.getWidth() != radius || bmp.getHeight() != radius) {
             float smallest = Math.min(bmp.getWidth(), bmp.getHeight());
             float factor = smallest / radius;
-            bitmap = Bitmap.createScaledBitmap(bmp, (int) (bmp.getWidth() / factor), (int) (bmp.getHeight() / factor), false);
+            bitmap = Bitmap.createScaledBitmap(bmp, (int)(bmp.getWidth() / factor), (int)(bmp.getHeight() / factor), false);
         } else {
             bitmap = bmp;
         }
@@ -78,6 +56,28 @@ public class CircularImageView extends android.support.v7.widget.AppCompatImageV
         canvas.drawBitmap(bitmap, rect, rect, paint);
 
         return output;
+    }
+
+    @Override
+    protected void onDraw(@NonNull Canvas canvas) {
+
+        Drawable drawable = getDrawable();
+
+        if (drawable == null) {
+            return;
+        }
+
+        if (getWidth() == 0 || getHeight() == 0) {
+            return;
+        }
+        Bitmap b = ((BitmapDrawable)drawable).getBitmap();
+        Bitmap bitmap = b.copy(Bitmap.Config.ARGB_8888, true);
+
+        int w = getWidth()/*, h = getHeight( )*/;
+
+        Bitmap roundBitmap = getCroppedBitmap(bitmap, w);
+        canvas.drawBitmap(roundBitmap, 0, 0, null);
+
     }
 
 }

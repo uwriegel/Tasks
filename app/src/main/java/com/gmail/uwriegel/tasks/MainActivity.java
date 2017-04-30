@@ -43,6 +43,11 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
+// TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
+// TODO: und wenn das Konto gewechselt wird
+// TODO: Kein InitializeGoogle am Ende von onCreate
+// TODO: Wenn keine Taskliste vorhanden ist, wird das Konto bestimmt, und anschließend der Nav-Header geöffnet
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         EasyPermissions.PermissionCallbacks {
@@ -51,10 +56,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -63,7 +68,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
@@ -72,29 +77,29 @@ public class MainActivity extends AppCompatActivity
 
                 String name = accountAccess.getCredential().getSelectedAccountName();
                 if (name != null) {
-                    TextView googleAccount = (TextView) findViewById(R.id.textViewGoogleAccount);
+                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
                     googleAccount.setText(name);
 
-                    TextView googleDisplay = (TextView) findViewById(R.id.textViewGoogleDisplayName);
+                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
                     googleDisplay.setText(accountAccess.getDisplayName());
 
                     setPhotoUrl();
                 }
 
-                final LinearLayout layout = (LinearLayout) findViewById(R.id.id_nav_header);
+                final LinearLayout layout = (LinearLayout)findViewById(R.id.id_nav_header);
                 layout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        final ImageView myImage = (ImageView) findViewById(R.id.googleAccountSpinner);
+                        final ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
                         myImage.setImageResource(R.drawable.dropup);
                         accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
                             @Override
                             public void OnAccount(String account, String name) {
                                 if (account != null) {
-                                    TextView googleAccount = (TextView) findViewById(R.id.textViewGoogleAccount);
+                                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
                                     googleAccount.setText(account);
 
-                                    TextView googleDisplay = (TextView) findViewById(R.id.textViewGoogleDisplayName);
+                                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
                                     googleDisplay.setText(name);
 
                                     clearNavigationDrawer(null);
@@ -116,133 +121,11 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         accountAccess = new AccountAccess(this);
         InitializeGoogle();
-    }
-
-    /**
-     * Respond to requests for permissions at runtime for API 23 and above.
-     *
-     * @param requestCode  The request code passed in
-     *                     requestPermissions(android.app.Activity, String, int, String[])
-     * @param permissions  The requested permissions. Never null.
-     * @param grantResults The grant results for the corresponding permissions
-     *                     which is either PERMISSION_GRANTED or PERMISSION_DENIED. Never null.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        if (id >= MENU_TASKLISTS_START_ID) {
-            try {
-                Tasklist[] tasklists = getTasklists();
-                int index = id - MENU_TASKLISTS_START_ID;
-                Tasklist tasklist = tasklists[index];
-
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("name", tasklist.getTitle());
-                jsonObject.put("id", tasklist.getID());
-
-                SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(PREF_SELECTED_TASKLIST, jsonObject.toString());
-                editor.apply();
-            } catch (JSONException je) {
-                je.printStackTrace();
-            }
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    private void clearNavigationDrawer(Menu menu) {
-        if (menu == null) {
-            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-            menu = navigationView.getMenu();
-        }
-        menu.clear();
-    }
-
-    private void initializeNavigationDrawer() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        Menu menu = navigationView.getMenu();
-        clearNavigationDrawer(menu);
-
-        try {
-            Tasklist[] tasklists = getTasklists();
-            int id = MENU_TASKLISTS_START_ID;
-            for (Tasklist tasklist : tasklists) {
-                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.getTitle());
-                mi.setCheckable(true);
-                mi.setIcon(R.drawable.ic_list);
-//                if (activeTasklist != null && activeTasklist.compareTo(tl.getId()) == 0)
-//                {
-//                    mi.setChecked(true);
-//                    setTitle(mi.getTitle());
-//                }
-            }
-        } catch (JSONException je) {
-            je.printStackTrace();
-        }
-
-
-//        if (activeTasklist != null)
-//        {
-//            Intent intent = new Intent(this, UpdateService.class);
-//            intent.putExtra(UpdateService.ACTION, UpdateService.ACTION_TASKLISTS);
-//            startService(intent);
-//        }
-//        else
-//        {
-//            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//            drawer.openDrawer(navigationView);
-//        }
     }
 
     /**
@@ -293,6 +176,77 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    /**
+     * Respond to requests for permissions at runtime for API 23 and above.
+     *
+     * @param requestCode  The request code passed in
+     *                     requestPermissions(android.app.Activity, String, int, String[])
+     * @param permissions  The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions
+     *                     which is either PERMISSION_GRANTED or PERMISSION_DENIED. Never null.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    private void clearNavigationDrawer(Menu menu) {
+        if (menu == null) {
+            NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
+            menu = navigationView.getMenu();
+        }
+        menu.clear();
+    }
+
+    private void initializeNavigationDrawer() {
+        NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        clearNavigationDrawer(menu);
+
+        try {
+            Tasklist[] tasklists = getTasklists();
+            int id = MENU_TASKLISTS_START_ID;
+            for (Tasklist tasklist : tasklists) {
+                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.getTitle());
+                mi.setCheckable(true);
+                mi.setIcon(R.drawable.ic_list);
+//                if (activeTasklist != null && activeTasklist.compareTo(tl.getId()) == 0)
+//                {
+//                    mi.setChecked(true);
+//                    setTitle(mi.getTitle());
+//                }
+            }
+        } catch (JSONException je) {
+            je.printStackTrace();
+        }
+
+
+//        if (activeTasklist != null)
+//        {
+//            Intent intent = new Intent(this, UpdateService.class);
+//            intent.putExtra(UpdateService.ACTION, UpdateService.ACTION_TASKLISTS);
+//            startService(intent);
+//        }
+//        else
+//        {
+//            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//            drawer.openDrawer(navigationView);
+//        }
+    }
+
     private void initializeGoogleAccount() {
         try {
             final TaskListsTask taskListsTask = new TaskListsTask();
@@ -323,34 +277,8 @@ public class MainActivity extends AppCompatActivity
         initializeGoogleAccount();
     }
 
-    /**
-     * Callback for when a permission is granted using the EasyPermissions
-     * library.
-     *
-     * @param requestCode The request code associated with the requested
-     *                    permission
-     * @param list        The requested permission list. Never null.
-     */
-    @Override
-    public void onPermissionsGranted(int requestCode, List<String> list) {
-        // Do nothing.
-    }
-
-    /**
-     * Callback for when a permission is denied using the EasyPermissions
-     * library.
-     *
-     * @param requestCode The request code associated with the requested
-     *                    permission
-     * @param list        The requested permission list. Never null.
-     */
-    @Override
-    public void onPermissionsDenied(int requestCode, List<String> list) {
-        // Do nothing.
-    }
-
     private void setPhotoUrl() {
-        ImageView myImage = (ImageView) findViewById(R.id.imageView);
+        ImageView myImage = (ImageView)findViewById(R.id.imageView);
         if (defaultPhotoDrawable == null)
             defaultPhotoDrawable = myImage.getDrawable();
 
@@ -381,6 +309,83 @@ public class MainActivity extends AppCompatActivity
         return result;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+        if (id >= MENU_TASKLISTS_START_ID) {
+            try {
+                Tasklist[] tasklists = getTasklists();
+                int index = id - MENU_TASKLISTS_START_ID;
+                Tasklist tasklist = tasklists[index];
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", tasklist.getTitle());
+                jsonObject.put("id", tasklist.getID());
+
+                SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(PREF_SELECTED_TASKLIST, jsonObject.toString());
+                editor.apply();
+            } catch (JSONException je) {
+                je.printStackTrace();
+            }
+        }
+
+        DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    /**
+     * Callback for when a permission is granted using the EasyPermissions
+     * library.
+     *
+     * @param requestCode The request code associated with the requested
+     *                    permission
+     * @param list        The requested permission list. Never null.
+     */
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> list) {
+        // Do nothing.
+    }
+
+    /**
+     * Callback for when a permission is denied using the EasyPermissions
+     * library.
+     *
+     * @param requestCode The request code associated with the requested
+     *                    permission
+     * @param list        The requested permission list. Never null.
+     */
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> list) {
+        // Do nothing.
+    }
+
     private class AccountTask extends AsyncTask<Integer, Integer, Integer> {
         @Override
         protected Integer doInBackground(Integer... params) {
@@ -390,6 +395,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private class TaskListsTask extends AsyncTask<Integer, Integer, List<Tasklist>> {
+        private IOException error;
+
         @Override
         protected List<Tasklist> doInBackground(Integer... params) {
             try {
@@ -405,10 +412,10 @@ public class MainActivity extends AppCompatActivity
         protected void onCancelled() {
             if (error != null) {
                 if (error instanceof GooglePlayServicesAvailabilityIOException)
-                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException) error)
+                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException)error)
                             .getConnectionStatusCode());
                 else if (error instanceof UserRecoverableAuthIOException)
-                    startActivityForResult(((UserRecoverableAuthIOException) error).getIntent(), REQUEST_AUTHORIZATION);
+                    startActivityForResult(((UserRecoverableAuthIOException)error).getIntent(), REQUEST_AUTHORIZATION);
                 else
                     error.printStackTrace();
             }
@@ -439,16 +446,15 @@ public class MainActivity extends AppCompatActivity
             initializeNavigationDrawer();
         }
 
-        private IOException error;
+
     }
 
     static final String TAG = "Tasks";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
-    private static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
-
+    private static final int REQUEST_AUTHORIZATION = 1001;
     private static final String PREF_TASKLISTS = "tasklists";
     private static final String PREF_SELECTED_TASKLIST = "selectedTasklist";
     private static final int MENU_GROUP_TASKLISTS = 200;

@@ -28,9 +28,7 @@ class TasksContentProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        TasksSQLiteOpenHelper tasksSQLiteOpenHelper = new TasksSQLiteOpenHelper(getContext(),
-                TasksSQLiteOpenHelper.DATABASE_NAME, null,
-                TasksSQLiteOpenHelper.DATABASE_VERSION);
+        TasksSQLiteOpenHelper tasksSQLiteOpenHelper = new TasksSQLiteOpenHelper(getContext());
         return true;
     }
 
@@ -70,8 +68,8 @@ class TasksContentProvider extends ContentProvider {
 
     private static class TasksSQLiteOpenHelper extends SQLiteOpenHelper {
 
-        public TasksSQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory cursorFactory, int version) {
-            super(context,name,cursorFactory,version);
+        public TasksSQLiteOpenHelper(Context context) {
+            super(context,TasksSQLiteOpenHelper.DATABASE_NAME, null, TasksSQLiteOpenHelper.DATABASE_VERSION);
         }
 
         @Override

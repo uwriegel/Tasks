@@ -45,65 +45,6 @@ class AccountAccess {
         credential = GoogleAccountCredential.usingOAuth2(mainActivity.getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
     }
 
-    GoogleAccountCredential getCredential() {
-        return credential;
-    }
-
-    String getDisplayName() {
-        return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null);
-    }
-
-    void initialize(IOnReady onReady) {
-        if (!isGooglePlayServicesAvailable())
-            acquireGooglePlayServices();
-        else if (forceNewAccount || credential.getSelectedAccountName() == null)
-            chooseAccount(onReady);
-        else
-            onReady.OnReady();
-    }
-
-    void forceNewAccount(IOnAccountChosen onAccountChosen) {
-        forceNewAccount = true;
-        this.onAccountChosen = onAccountChosen;
-    }
-
-    void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
-        Auth.GoogleSignInApi.signOut(googleApiClient);
-        googleApiClient.stopAutoManage((FragmentActivity) mainActivity);
-        forceNewAccount = false;
-        if (accountName != null) {
-            SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString(PREF_ACCOUNT_NAME, accountName);
-            editor.putString(PREF_ACCOUNT_DISPLAYNAME, displayName);
-            editor.apply();
-            if (onAccountChosen != null)
-                onAccountChosen.OnAccount(accountName, displayName);
-            credential.setSelectedAccountName(accountName);
-            downloadAvatar(photoUrl);
-        } else {
-            if (onAccountChosen != null)
-                onAccountChosen.OnAccount(null, null);
-            onAccountChosen = null;
-        }
-    }
-
-    /**
-     * Display an error dialog showing that Google Play Services is missing
-     * or out of date.
-     *
-     * @param connectionStatusCode code describing the presence (or lack of)
-     *                             Google Play Services on this device.
-     */
-    void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        Dialog dialog = apiAvailability.getErrorDialog(
-                mainActivity,
-                connectionStatusCode,
-                MainActivity.REQUEST_GOOGLE_PLAY_SERVICES);
-        dialog.show();
-    }
-
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void downloadAvatar(Uri photoUri) {
         File file = new File(mainActivity.getFilesDir(), "account.jpg");
@@ -115,7 +56,7 @@ class AccountAccess {
             protected Integer doInBackground(String... params) {
                 try {
                     URL url = new URL(params[0]);
-                    HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+                    HttpURLConnection httpConnection = (HttpURLConnection)url.openConnection();
                     int responseCode = httpConnection.getResponseCode();
                     if (responseCode == 200) {
                         FileOutputStream outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE);
@@ -158,7 +99,7 @@ class AccountAccess {
                 .build();
         // Build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
         googleApiClient = new GoogleApiClient.Builder(mainActivity)
-                .enableAutoManage((FragmentActivity) mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
+                .enableAutoManage((FragmentActivity)mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
                         Log.w(TAG, "Could not choose account: connection failed");
@@ -206,6 +147,65 @@ class AccountAccess {
             // Request the GET_ACCOUNTS permission via a user dialog
             EasyPermissions.requestPermissions(mainActivity, mainActivity.getString(R.string.google_account_access_needed),
                     MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
+    }
+
+    GoogleAccountCredential getCredential() {
+        return credential;
+    }
+
+    String getDisplayName() {
+        return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null);
+    }
+
+    void initialize(IOnReady onReady) {
+        if (!isGooglePlayServicesAvailable())
+            acquireGooglePlayServices();
+        else if (forceNewAccount || credential.getSelectedAccountName() == null)
+            chooseAccount(onReady);
+        else
+            onReady.OnReady();
+    }
+
+    void forceNewAccount(IOnAccountChosen onAccountChosen) {
+        forceNewAccount = true;
+        this.onAccountChosen = onAccountChosen;
+    }
+
+    void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
+        Auth.GoogleSignInApi.signOut(googleApiClient);
+        googleApiClient.stopAutoManage((FragmentActivity)mainActivity);
+        forceNewAccount = false;
+        if (accountName != null) {
+            SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PREF_ACCOUNT_NAME, accountName);
+            editor.putString(PREF_ACCOUNT_DISPLAYNAME, displayName);
+            editor.apply();
+            if (onAccountChosen != null)
+                onAccountChosen.OnAccount(accountName, displayName);
+            credential.setSelectedAccountName(accountName);
+            downloadAvatar(photoUrl);
+        } else {
+            if (onAccountChosen != null)
+                onAccountChosen.OnAccount(null, null);
+            onAccountChosen = null;
+        }
+    }
+
+    /**
+     * Display an error dialog showing that Google Play Services is missing
+     * or out of date.
+     *
+     * @param connectionStatusCode code describing the presence (or lack of)
+     *                             Google Play Services on this device.
+     */
+    void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        Dialog dialog = apiAvailability.getErrorDialog(
+                mainActivity,
+                connectionStatusCode,
+                MainActivity.REQUEST_GOOGLE_PLAY_SERVICES);
+        dialog.show();
     }
 
     interface IOnReady {
