@@ -33,4 +33,5 @@ dependencies {
         exclude group: 'org.apache.httpcomponents'
     }
     compile 'pub.devrel:easypermissions:0.2.1'
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
 }
