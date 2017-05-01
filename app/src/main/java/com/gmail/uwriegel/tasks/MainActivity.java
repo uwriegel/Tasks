@@ -18,7 +18,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,8 +34,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,12 +42,10 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-// TODO: Bei Klick auf Account den ChooseAccount aufrufen
-// TODO: Danach die Tasklisten neu bestimmen
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: und wenn das Konto gewechselt wird
-// TODO: Wenn keine Taskliste vorhanden ist, wird das Konto bestimmt, und anschließend der Nav-Header geöffnet
 // TODO: In die Nav-Liste Kalender übernehmen
+// TODO: Titeländerungen (Tasklistname) funktionieren nur sporadisch
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -87,31 +82,7 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(View v) {
                         final ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
                         myImage.setImageResource(R.drawable.dropup);
-                        //chooseAccount();
-
-
-//                        accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
-//                            @Override
-//                            public void OnAccount(String account, String name) {
-//                                if (account != null) {
-//                                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
-//                                    googleAccount.setText(account);
-//
-//                                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
-//                                    googleDisplay.setText(name);
-//
-//                                    clearNavigationDrawer(null);
-//                                }
-//
-//                                myImage.setImageResource(R.drawable.dropdown);
-//                            }
-//
-//                            @Override
-//                            public void OnPhotoUrl() {
-//                                setPhotoUrl();
-//                            }
-//                        });
-
+                        chooseAccount();
                     }
                 });
             }
@@ -122,11 +93,12 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        if (!initialzeGoogleAccountFromPreferences()) {
-            // TODO: nicht bei AccountName == null, seondern, wenn keine Tasklist ausgewählt
-            drawer.openDrawer(Gravity.START);
+        selectedTasklist = getPreferences(Context.MODE_PRIVATE).getString(PREF_SELECTED_TASKLIST, null);
+
+        if (!initialzeGoogleAccountFromPreferences())
             chooseAccount();
-        }
+        if (!initialzeGoogleAccountFromPreferences() || selectedTasklist == null)
+            drawer.openDrawer(navigationView);
 
         // TODO: Test
         if (googleAccount != null) {
@@ -178,9 +150,11 @@ public class MainActivity extends AppCompatActivity
                         // Signed in successfully, show authenticated UI.
                         GoogleSignInAccount googleSignInAccount = result.getSignInAccount();
                         if (googleSignInAccount != null) {
+                            selectedTasklist = null;
+
                             GoogleAccount googleAccount = new GoogleAccount(googleSignInAccount.getAccount().name,
                                     googleSignInAccount.getDisplayName(),
-                                    googleSignInAccount.getPhotoUrl().toString());
+                                    googleSignInAccount.getPhotoUrl());
 
                             String settings = new Gson().toJson(googleAccount);
                             SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
@@ -196,6 +170,9 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
                 AccountChooser.getInstance().onAccountPicked();
+                final ImageView image = (ImageView)findViewById(R.id.googleAccountSpinner);
+                if (image != null)
+                    image.setImageResource(R.drawable.dropdown);
                 break;
             case REQUEST_AUTHORIZATION:
                 if (resultCode == RESULT_OK)
@@ -267,11 +244,10 @@ public class MainActivity extends AppCompatActivity
                 MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.name);
                 mi.setCheckable(true);
                 mi.setIcon(R.drawable.ic_list);
-//                if (activeTasklist != null && activeTasklist.compareTo(tl.getId()) == 0)
-//                {
-//                    mi.setChecked(true);
-//                    setTitle(mi.getTitle());
-//                }
+                if (selectedTasklist != null && selectedTasklist.compareTo(tasklist.id) == 0) {
+                    mi.setChecked(true);
+                    setTitle(mi.getTitle());
+                }
             }
         }
 
@@ -343,7 +319,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setPhotoUrl(Boolean internal) {
-        ImageView myImage = (ImageView)findViewById(R.id.imageView);
+        final ImageView myImage = (ImageView)findViewById(R.id.imageView);
         if (defaultPhotoDrawable == null)
             defaultPhotoDrawable = myImage.getDrawable();
 
@@ -365,6 +341,8 @@ public class MainActivity extends AppCompatActivity
                     editor.apply();
                     if (success)
                         setPhotoUrl(true);
+                    else
+                        myImage.setImageDrawable(defaultPhotoDrawable);
                 }
             });
     }
@@ -402,24 +380,26 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
+    //@SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         if (id >= MENU_TASKLISTS_START_ID) {
-//                Tasklist[] tasklists = getTasklists();
-            int index = id - MENU_TASKLISTS_START_ID;
-            //              Tasklist tasklist = tasklists[index];
+            String settings = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
+            if (settings != null) {
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+                TaskLists tasklists = gson.fromJson(settings, TaskLists.class);
 
-            JSONObject jsonObject = new JSONObject();
-            //            jsonObject.put("name", tasklist.getTitle());
-            //          jsonObject.put("id", tasklist.getID());
-
-            SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString(PREF_SELECTED_TASKLIST, jsonObject.toString());
-            editor.apply();
+                int index = id - MENU_TASKLISTS_START_ID;
+                TaskList taskList = tasklists.taskLists[index];
+                selectedTasklist = taskList.id;
+                SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(PREF_SELECTED_TASKLIST, selectedTasklist);
+                editor.apply();
+            }
         }
 
         DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
@@ -467,4 +447,5 @@ public class MainActivity extends AppCompatActivity
 
     private Drawable defaultPhotoDrawable;
     private GoogleAccount googleAccount;
+    private String selectedTasklist;
 }
