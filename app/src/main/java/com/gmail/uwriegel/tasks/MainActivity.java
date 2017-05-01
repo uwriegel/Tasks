@@ -75,7 +75,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-
                 if (accountName != null) {
                     TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
                     googleAccount.setText(accountName);
@@ -92,6 +91,9 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(View v) {
                         final ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
                         myImage.setImageResource(R.drawable.dropup);
+                        //chooseAccount();
+
+
 //                        accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
 //                            @Override
 //                            public void OnAccount(String account, String name) {
@@ -125,11 +127,11 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         accountName = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
-        // TODO: nicht bei AccountNAme == null, seondern, wenn keine Tasklist ausgewählt
+        // TODO: nicht bei AccountName == null, seondern, wenn keine Tasklist ausgewählt
         if (accountName == null) {
-            drawer.openDrawer(Gravity.LEFT);
+//            drawer.openDrawer(Gravity.LEFT);
+            chooseAccount();
         }
-
 
         // TODO: Test
         final TasksCredential credential = new TasksCredential(MainActivity.this, accountName);
@@ -149,10 +151,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         }).start();
-
-
-        //accountAccess = new AccountAccess(this);
-        //  InitializeGoogle();
     }
 
     /**
@@ -192,8 +190,14 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 }
-                //accountAccess.onAccountPicked(accountName, accountDisplayName, photoUrl);
+                AccountChooser.getInstance().onAccountPicked();
                 if (accountName != null)
+                    // TODO: HIER KOMMEN WIR REIN NACH DEM AKAUNT picken
+                    // TODO: Abspeichern von AccontName, AccountDisplayName, AkkountUrl
+                    // TODO: Anstoß des Downloades des Bildes
+                    // TODO: NUn muss beim Öffnen des Drawers alles angezeigt werden
+                    // TODO: Wenn das Bild downgeloaded wurde, dieses anzeigen
+                    // TODO: die geöffnete Drawer aktualisieren
                     initializeGoogleAccount();
                 break;
             case REQUEST_AUTHORIZATION:
@@ -289,6 +293,10 @@ public class MainActivity extends AppCompatActivity
 //        }
     }
 
+    private void chooseAccount() {
+        AccountChooser.getInstance().initialize(this);
+    }
+
     /**
      * Attempts to set the account used with the API credentials. If an account
      * name was previously saved it will use that one; otherwise an account
@@ -301,7 +309,7 @@ public class MainActivity extends AppCompatActivity
      */
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
     private void AfterPermissionGranted() {
-        initializeGoogleAccount();
+        chooseAccount();
     }
 
     private void setPhotoUrl() {

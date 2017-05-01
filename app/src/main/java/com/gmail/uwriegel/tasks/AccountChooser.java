@@ -38,14 +38,77 @@ import static com.gmail.uwriegel.tasks.MainActivity.TAG;
  */
 class AccountChooser {
 
-    AccountChooser(Activity mainActivity) {
-        this.mainActivity = mainActivity;
+    private static final AccountChooser instance = new AccountChooser();
 
+    public static AccountChooser getInstance() {
+        return instance;
     }
+
+    private AccountChooser() {
+    }
+
+    void initialize(Context context) {
+        this.context = context;
+        if (!isGooglePlayServicesAvailable())
+            acquireGooglePlayServices();
+        else if (EasyPermissions.hasPermissions(context, Manifest.permission.GET_ACCOUNTS)) {
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .build();
+            // Build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
+            googleApiClient = new GoogleApiClient.Builder(context)
+                    .enableAutoManage((FragmentActivity)context, new GoogleApiClient.OnConnectionFailedListener() {
+                        @Override
+                        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                            Log.w(TAG, "Could not choose account: connection failed");
+                        }
+                    })
+                    .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                    .build();
+
+            Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
+            ((Activity)context).startActivityForResult(signInIntent, MainActivity.REQUEST_ACCOUNT_PICKER);
+        } else
+            // Request the GET_ACCOUNTS permission via a user dialog
+            EasyPermissions.requestPermissions(context, context.getString(R.string.google_account_access_needed),
+                    MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
+    }
+
+    void onAccountPicked() {
+        Auth.GoogleSignInApi.signOut(googleApiClient);
+        googleApiClient.stopAutoManage((FragmentActivity)context);
+    }
+
+    /**
+     * Check that Google Play services APK is installed and up to date.
+     *
+     * @return true if Google Play Services is available and up to
+     * date on this device; false otherwise.
+     */
+    private boolean isGooglePlayServicesAvailable() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        final int connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(context);
+        return connectionStatusCode == ConnectionResult.SUCCESS;
+    }
+
+    /**
+     * Attempt to resolve a missing, out-of-date, invalid or disabled Google
+     * Play Services installation via a user dialog, if possible.
+     */
+    private void acquireGooglePlayServices() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        final int connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(context);
+        if (apiAvailability.isUserResolvableError(connectionStatusCode))
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
+    }
+
+    private Context context;
+
+    // =======================================================================================================================================================
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void downloadAvatar(Uri photoUri) {
-        File file = new File(mainActivity.getFilesDir(), "account.jpg");
+        File file = null; //= new File(mainActivity.getFilesDir(), "account.jpg");
         if (file.exists())
             file.delete();
 
@@ -57,16 +120,16 @@ class AccountChooser {
                     HttpURLConnection httpConnection = (HttpURLConnection)url.openConnection();
                     int responseCode = httpConnection.getResponseCode();
                     if (responseCode == 200) {
-                        FileOutputStream outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE);
-                        InputStream stream = httpConnection.getInputStream();
-                        byte[] bytes = new byte[20000];
-                        while (true) {
-                            int read = stream.read(bytes);
-                            if (read == -1)
-                                break;
-                            outputStream.write(bytes, 0, read);
-                        }
-                        outputStream.close();
+//                        FileOutputStream outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE);
+//                        InputStream stream = httpConnection.getInputStream();
+//                        byte[] bytes = new byte[20000];
+//                        while (true) {
+//                            int read = stream.read(bytes);
+//                            if (read == -1)
+//                                break;
+//                            outputStream.write(bytes, 0, read);
+//                        }
+                        //outputStream.close();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -96,60 +159,26 @@ class AccountChooser {
                 .requestEmail()
                 .build();
         // Build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
-        googleApiClient = new GoogleApiClient.Builder(mainActivity)
-                .enableAutoManage((FragmentActivity)mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        Log.w(TAG, "Could not choose account: connection failed");
-                    }
-                })
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
+//        googleApiClient = new GoogleApiClient.Builder(mainActivity)
+//                .enableAutoManage((FragmentActivity)mainActivity, new GoogleApiClient.OnConnectionFailedListener() {
+//                    @Override
+//                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+//                        Log.w(TAG, "Could not choose account: connection failed");
+//                    }
+//                })
+//                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+//                .build();
 
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
-        mainActivity.startActivityForResult(signInIntent, MainActivity.REQUEST_ACCOUNT_PICKER);
+        //mainActivity.startActivityForResult(signInIntent, MainActivity.REQUEST_ACCOUNT_PICKER);
     }
 
-    /**
-     * Check that Google Play services APK is installed and up to date.
-     *
-     * @return true if Google Play Services is available and up to
-     * date on this device; false otherwise.
-     */
-    private boolean isGooglePlayServicesAvailable() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        final int connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(mainActivity);
-        return connectionStatusCode == ConnectionResult.SUCCESS;
-    }
 
-    /**
-     * Attempt to resolve a missing, out-of-date, invalid or disabled Google
-     * Play Services installation via a user dialog, if possible.
-     */
-    private void acquireGooglePlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        final int connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(mainActivity);
-        if (apiAvailability.isUserResolvableError(connectionStatusCode))
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
-    }
 
-    private void chooseAccount(IOnReady onReady) {
-//        if (EasyPermissions.hasPermissions(mainActivity, Manifest.permission.GET_ACCOUNTS)) {
-//            String accountName = mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
-//            if (!forceNewAccount && accountName != null) {
-//                credential.setSelectedAccountName(accountName);
-//                initialize(onReady);
-//            } else
-//                startChoosingAccount();
-//        } else
-//            // Request the GET_ACCOUNTS permission via a user dialog
-//            EasyPermissions.requestPermissions(mainActivity, mainActivity.getString(R.string.google_account_access_needed),
-//                    MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
-    }
 
-    String getDisplayName() {
-        return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null);
-    }
+//    String getDisplayName() {
+//        return mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_DISPLAYNAME, null);
+//    }
 
     void initialize(IOnReady onReady) {
 //        if (!isGooglePlayServicesAvailable())
@@ -195,11 +224,11 @@ class AccountChooser {
      */
     void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        Dialog dialog = apiAvailability.getErrorDialog(
-                mainActivity,
-                connectionStatusCode,
-                MainActivity.REQUEST_GOOGLE_PLAY_SERVICES);
-        dialog.show();
+//        Dialog dialog = apiAvailability.getErrorDialog(
+//                mainActivity,
+//                connectionStatusCode,
+//                MainActivity.REQUEST_GOOGLE_PLAY_SERVICES);
+//        dialog.show();
     }
 
     interface IOnReady {
@@ -213,8 +242,6 @@ class AccountChooser {
     }
 
     private static final String PREF_ACCOUNT_DISPLAYNAME = "accountDisplayName";
-
-    private final Activity mainActivity;
 
     private GoogleApiClient googleApiClient;
     private boolean forceNewAccount;
