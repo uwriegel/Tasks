@@ -6,9 +6,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -28,32 +27,30 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.gmail.uwriegel.tasks.json.GoogleAccount;
+import com.gmail.uwriegel.tasks.json.TaskList;
+import com.gmail.uwriegel.tasks.json.TaskLists;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
-
-import static android.R.id.input;
 
 // TODO: Bei Klick auf Account den ChooseAccount aufrufen
 // TODO: Danach die Tasklisten neu bestimmen
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: und wenn das Konto gewechselt wird
 // TODO: Wenn keine Taskliste vorhanden ist, wird das Konto bestimmt, und anschließend der Nav-Header geöffnet
+// TODO: In die Nav-Liste Kalender übernehmen
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -82,6 +79,7 @@ public class MainActivity extends AppCompatActivity
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 setAccountInNavigationHeader();
+                initializeNavigationDrawer();
 
                 final LinearLayout layout = (LinearLayout)findViewById(R.id.id_nav_header);
                 layout.setOnClickListener(new View.OnClickListener() {
@@ -152,18 +150,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void setAccountInNavigationHeader() {
-        if (googleAccount != null) {
-            TextView googleAccountView = (TextView)findViewById(R.id.textViewGoogleAccount);
-            googleAccountView.setText(googleAccount.name);
-
-            TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
-            googleDisplay.setText(googleAccount.displayName);
-
-            setPhotoUrl(false);
-        }
-    }
-
     /**
      * Called when an activity launched here (specifically, AccountPicker
      * and authorization) exits, giving you the requestCode you started it with,
@@ -200,15 +186,16 @@ public class MainActivity extends AppCompatActivity
                             SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString(PREF_ACCOUNT, settings);
+                            editor.putBoolean(PREF_AVATAR_DOWNLOADED, false);
                             editor.apply();
+
+                            initialzeGoogleAccountFromPreferences();
+                            setAccountInNavigationHeader();
+                            getTaskLists();
                         }
                     }
                 }
                 AccountChooser.getInstance().onAccountPicked();
-                initialzeGoogleAccountFromPreferences();
-                setAccountInNavigationHeader();
-                // TODO: TASKLISTEN HOLEN
-
                 break;
             case REQUEST_AUTHORIZATION:
                 if (resultCode == RESULT_OK)
@@ -244,6 +231,18 @@ public class MainActivity extends AppCompatActivity
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
+    private void setAccountInNavigationHeader() {
+        if (googleAccount != null) {
+            TextView googleAccountView = (TextView)findViewById(R.id.textViewGoogleAccount);
+            googleAccountView.setText(googleAccount.name);
+
+            TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
+            googleDisplay.setText(googleAccount.displayName);
+
+            setPhotoUrl(false);
+        }
+    }
+
     private void clearNavigationDrawer(Menu menu) {
         if (menu == null) {
             NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
@@ -257,11 +256,15 @@ public class MainActivity extends AppCompatActivity
         Menu menu = navigationView.getMenu();
         clearNavigationDrawer(menu);
 
-        try {
-            Tasklist[] tasklists = getTasklists();
+        String settings = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
+        if (settings != null) {
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+            TaskLists tasklists = gson.fromJson(settings, TaskLists.class);
+
             int id = MENU_TASKLISTS_START_ID;
-            for (Tasklist tasklist : tasklists) {
-                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.getTitle());
+            for (TaskList tasklist : tasklists.taskLists) {
+                MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.name);
                 mi.setCheckable(true);
                 mi.setIcon(R.drawable.ic_list);
 //                if (activeTasklist != null && activeTasklist.compareTo(tl.getId()) == 0)
@@ -270,10 +273,7 @@ public class MainActivity extends AppCompatActivity
 //                    setTitle(mi.getTitle());
 //                }
             }
-        } catch (JSONException je) {
-            je.printStackTrace();
         }
-
 
 //        if (activeTasklist != null)
 //        {
@@ -290,6 +290,41 @@ public class MainActivity extends AppCompatActivity
 
     private void chooseAccount() {
         AccountChooser.getInstance().initialize(this);
+    }
+
+    private void getTaskLists() {
+        final TasksCredential credential = new TasksCredential(MainActivity.this, googleAccount.name);
+        final Handler handler = new Handler();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GoogleTasks googleTasks = new GoogleTasks(credential);
+                try {
+                    Tasklist[] googleTasklists = googleTasks.getTaskLists();
+                    ArrayList<TaskList> tasklists = new ArrayList<TaskList>();
+                    for (Tasklist googleTasklist : googleTasklists) {
+                        TaskList taskList = new TaskList(googleTasklist.getTitle(), googleTasklist.getID());
+                        tasklists.add(taskList);
+                    }
+                    TaskLists taskLists = new TaskLists(tasklists.toArray(new TaskList[0]));
+
+                    String taskListsString = new Gson().toJson(taskLists);
+                    SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(PREF_TASKLISTS, taskListsString);
+                    editor.apply();
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            initializeNavigationDrawer();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     /**
@@ -313,7 +348,7 @@ public class MainActivity extends AppCompatActivity
             defaultPhotoDrawable = myImage.getDrawable();
 
         if (getPreferences(Context.MODE_PRIVATE).getBoolean(PREF_AVATAR_DOWNLOADED, false)) {
-            File file = new File(getFilesDir(), "account.jpg");
+            File file = new File(getFilesDir(), AvatarDownloader.FILE);
             if (file.exists()) {
                 Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                 myImage.getDrawable();
@@ -334,18 +369,15 @@ public class MainActivity extends AppCompatActivity
             });
     }
 
-    private Tasklist[] getTasklists() throws JSONException {
-        String tasklistJson = getPreferences(Context.MODE_PRIVATE).getString(PREF_TASKLISTS, null);
-        JSONArray ja = new JSONArray(tasklistJson);
-        int length = ja.length();
-        Tasklist[] result = new Tasklist[length];
-        for (int i = 0; i < length; i++) {
-            JSONObject jo = ja.getJSONObject(i);
-            String title = jo.getString("name");
-            String id = jo.getString("id");
-            result[i] = new Tasklist(id, title);
-        }
-        return result;
+    private Boolean initialzeGoogleAccountFromPreferences() {
+        String settings = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT, null);
+        if (settings != null) {
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+            googleAccount = gson.fromJson(settings, GoogleAccount.class);
+            return true;
+        } else
+            return false;
     }
 
     @Override
@@ -376,22 +408,18 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         if (id >= MENU_TASKLISTS_START_ID) {
-            try {
-                Tasklist[] tasklists = getTasklists();
-                int index = id - MENU_TASKLISTS_START_ID;
-                Tasklist tasklist = tasklists[index];
+//                Tasklist[] tasklists = getTasklists();
+            int index = id - MENU_TASKLISTS_START_ID;
+            //              Tasklist tasklist = tasklists[index];
 
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("name", tasklist.getTitle());
-                jsonObject.put("id", tasklist.getID());
+            JSONObject jsonObject = new JSONObject();
+            //            jsonObject.put("name", tasklist.getTitle());
+            //          jsonObject.put("id", tasklist.getID());
 
-                SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(PREF_SELECTED_TASKLIST, jsonObject.toString());
-                editor.apply();
-            } catch (JSONException je) {
-                je.printStackTrace();
-            }
+            SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PREF_SELECTED_TASKLIST, jsonObject.toString());
+            editor.apply();
         }
 
         DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
@@ -424,74 +452,6 @@ public class MainActivity extends AppCompatActivity
     public void onPermissionsDenied(int requestCode, List<String> list) {
         // Do nothing.
     }
-
-    private Boolean initialzeGoogleAccountFromPreferences() {
-        String settings = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT, null);
-        if (settings != null) {
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-            googleAccount = gson.fromJson(settings, GoogleAccount.class);
-            return true;
-        } else
-            return false;
-    }
-
-    private class TaskListsTask extends AsyncTask<Integer, Integer, Tasklist[]> {
-        private IOException error;
-
-        @Override
-        protected Tasklist[] doInBackground(Integer... params) {
-//            try {
-//                return googleTasks.getTaskLists();
-//            } catch (IOException e) {
-//                error = e;
-//                cancel(true);
-//                return null;
-//            }
-            return null;
-        }
-
-        @Override
-        protected void onCancelled() {
-            if (error != null) {
-//                if (error instanceof GooglePlayServicesAvailabilityIOException)
-//                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException)error)
-//                            .getConnectionStatusCode());
-//                else if (error instanceof UserRecoverableAuthIOException)
-//                    startActivityForResult(((UserRecoverableAuthIOException)error).getIntent(), REQUEST_AUTHORIZATION);
-//                else
-//                    error.printStackTrace();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Tasklist[] tasklists) {
-            super.onPostExecute(tasklists);
-
-            JSONArray jsonArray = new JSONArray();
-            for (Tasklist taskList : tasklists) {
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("name", taskList.getTitle());
-                    jsonObject.put("id", taskList.getID());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                jsonArray.put(jsonObject);
-            }
-
-            String taskJson = jsonArray.toString();
-            SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString(PREF_TASKLISTS, taskJson);
-            editor.apply();
-
-            initializeNavigationDrawer();
-        }
-
-
-    }
-
     static final String TAG = "Tasks";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
