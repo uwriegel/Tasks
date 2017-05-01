@@ -36,13 +36,11 @@ import static com.gmail.uwriegel.tasks.MainActivity.TAG;
 /**
  * Created by urieg on 21.04.2017.
  */
-class AccountAccess {
+class AccountChooser {
 
-    AccountAccess(Activity mainActivity) {
+    AccountChooser(Activity mainActivity) {
         this.mainActivity = mainActivity;
 
-        // Initialize credentials and service object.
-        credential = GoogleAccountCredential.usingOAuth2(mainActivity.getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -136,21 +134,17 @@ class AccountAccess {
     }
 
     private void chooseAccount(IOnReady onReady) {
-        if (EasyPermissions.hasPermissions(mainActivity, Manifest.permission.GET_ACCOUNTS)) {
-            String accountName = mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
-            if (!forceNewAccount && accountName != null) {
-                credential.setSelectedAccountName(accountName);
-                initialize(onReady);
-            } else
-                startChoosingAccount();
-        } else
-            // Request the GET_ACCOUNTS permission via a user dialog
-            EasyPermissions.requestPermissions(mainActivity, mainActivity.getString(R.string.google_account_access_needed),
-                    MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
-    }
-
-    GoogleAccountCredential getCredential() {
-        return credential;
+//        if (EasyPermissions.hasPermissions(mainActivity, Manifest.permission.GET_ACCOUNTS)) {
+//            String accountName = mainActivity.getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
+//            if (!forceNewAccount && accountName != null) {
+//                credential.setSelectedAccountName(accountName);
+//                initialize(onReady);
+//            } else
+//                startChoosingAccount();
+//        } else
+//            // Request the GET_ACCOUNTS permission via a user dialog
+//            EasyPermissions.requestPermissions(mainActivity, mainActivity.getString(R.string.google_account_access_needed),
+//                    MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS);
     }
 
     String getDisplayName() {
@@ -158,12 +152,12 @@ class AccountAccess {
     }
 
     void initialize(IOnReady onReady) {
-        if (!isGooglePlayServicesAvailable())
-            acquireGooglePlayServices();
-        else if (forceNewAccount || credential.getSelectedAccountName() == null)
-            chooseAccount(onReady);
-        else
-            onReady.OnReady();
+//        if (!isGooglePlayServicesAvailable())
+//            acquireGooglePlayServices();
+//        else if (forceNewAccount || credential.getSelectedAccountName() == null)
+//            chooseAccount(onReady);
+//        else
+//            onReady.OnReady();
     }
 
     void forceNewAccount(IOnAccountChosen onAccountChosen) {
@@ -172,24 +166,24 @@ class AccountAccess {
     }
 
     void onAccountPicked(String accountName, String displayName, Uri photoUrl) {
-        Auth.GoogleSignInApi.signOut(googleApiClient);
-        googleApiClient.stopAutoManage((FragmentActivity)mainActivity);
-        forceNewAccount = false;
-        if (accountName != null) {
-            SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString(PREF_ACCOUNT_NAME, accountName);
-            editor.putString(PREF_ACCOUNT_DISPLAYNAME, displayName);
-            editor.apply();
-            if (onAccountChosen != null)
-                onAccountChosen.OnAccount(accountName, displayName);
-            credential.setSelectedAccountName(accountName);
-            downloadAvatar(photoUrl);
-        } else {
-            if (onAccountChosen != null)
-                onAccountChosen.OnAccount(null, null);
-            onAccountChosen = null;
-        }
+//        Auth.GoogleSignInApi.signOut(googleApiClient);
+//        googleApiClient.stopAutoManage((FragmentActivity)mainActivity);
+//        forceNewAccount = false;
+//        if (accountName != null) {
+//            SharedPreferences settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
+//            SharedPreferences.Editor editor = settings.edit();
+//            editor.putString(PREF_ACCOUNT_NAME, accountName);
+//            editor.putString(PREF_ACCOUNT_DISPLAYNAME, displayName);
+//            editor.apply();
+//            if (onAccountChosen != null)
+//                onAccountChosen.OnAccount(accountName, displayName);
+//            credential.setSelectedAccountName(accountName);
+//            downloadAvatar(photoUrl);
+//        } else {
+//            if (onAccountChosen != null)
+//                onAccountChosen.OnAccount(null, null);
+//            onAccountChosen = null;
+//        }
     }
 
     /**
@@ -218,12 +212,9 @@ class AccountAccess {
         void OnPhotoUrl();
     }
 
-    private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String PREF_ACCOUNT_DISPLAYNAME = "accountDisplayName";
-    private static final String[] SCOPES = {TasksScopes.TASKS_READONLY};
 
     private final Activity mainActivity;
-    private final GoogleAccountCredential credential;
 
     private GoogleApiClient googleApiClient;
     private boolean forceNewAccount;

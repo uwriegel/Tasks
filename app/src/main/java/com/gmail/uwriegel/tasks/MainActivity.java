@@ -19,6 +19,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -75,13 +76,12 @@ public class MainActivity extends AppCompatActivity
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
 
-                String name = accountAccess.getCredential().getSelectedAccountName();
-                if (name != null) {
+                if (accountName != null) {
                     TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
-                    googleAccount.setText(name);
+                    googleAccount.setText(accountName);
 
                     TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
-                    googleDisplay.setText(accountAccess.getDisplayName());
+                    //googleDisplay.setText(accountAccess.getDisplayName());
 
                     setPhotoUrl();
                 }
@@ -92,27 +92,27 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(View v) {
                         final ImageView myImage = (ImageView)findViewById(R.id.googleAccountSpinner);
                         myImage.setImageResource(R.drawable.dropup);
-                        accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
-                            @Override
-                            public void OnAccount(String account, String name) {
-                                if (account != null) {
-                                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
-                                    googleAccount.setText(account);
-
-                                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
-                                    googleDisplay.setText(name);
-
-                                    clearNavigationDrawer(null);
-                                }
-
-                                myImage.setImageResource(R.drawable.dropdown);
-                            }
-
-                            @Override
-                            public void OnPhotoUrl() {
-                                setPhotoUrl();
-                            }
-                        });
+//                        accountAccess.forceNewAccount(new AccountAccess.IOnAccountChosen() {
+//                            @Override
+//                            public void OnAccount(String account, String name) {
+//                                if (account != null) {
+//                                    TextView googleAccount = (TextView)findViewById(R.id.textViewGoogleAccount);
+//                                    googleAccount.setText(account);
+//
+//                                    TextView googleDisplay = (TextView)findViewById(R.id.textViewGoogleDisplayName);
+//                                    googleDisplay.setText(name);
+//
+//                                    clearNavigationDrawer(null);
+//                                }
+//
+//                                myImage.setImageResource(R.drawable.dropdown);
+//                            }
+//
+//                            @Override
+//                            public void OnPhotoUrl() {
+//                                setPhotoUrl();
+//                            }
+//                        });
                         InitializeGoogle();
                     }
                 });
@@ -124,8 +124,35 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        accountAccess = new AccountAccess(this);
-        InitializeGoogle();
+        accountName = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
+        // TODO: nicht bei AccountNAme == null, seondern, wenn keine Tasklist ausgewählt
+        if (accountName == null) {
+            drawer.openDrawer(Gravity.LEFT);
+        }
+
+
+        // TODO: Test
+        final TasksCredential credential = new TasksCredential(MainActivity.this, accountName);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GoogleTasks gt = new GoogleTasks(credential);
+                try {
+                    Tasklist ts = gt.getTaskLists()[0];
+                    String u = ts.getTitle();
+                    String id = ts.getID();
+                    String nichts = id;
+                } catch (IOException ie) {
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
+        //accountAccess = new AccountAccess(this);
+        //  InitializeGoogle();
     }
 
     /**
@@ -165,7 +192,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 }
-                accountAccess.onAccountPicked(accountName, accountDisplayName, photoUrl);
+                //accountAccess.onAccountPicked(accountName, accountDisplayName, photoUrl);
                 if (accountName != null)
                     initializeGoogleAccount();
                 break;
@@ -248,18 +275,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initializeGoogleAccount() {
-        try {
-            final TaskListsTask taskListsTask = new TaskListsTask();
-            accountAccess.initialize(new AccountAccess.IOnReady() {
-                @Override
-                public void OnReady() {
-                    googleTasks = new GoogleTasks(accountAccess.getCredential());
-                    taskListsTask.execute(0);
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            final TaskListsTask taskListsTask = new TaskListsTask();
+//            accountAccess.initialize(new AccountAccess.IOnReady() {
+//                @Override
+//                public void OnReady() {
+//                    googleTasks = new GoogleTasks(accountAccess.getCredential());
+//                    taskListsTask.execute(0);
+//                }
+//            });
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -394,35 +421,36 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private class TaskListsTask extends AsyncTask<Integer, Integer, List<Tasklist>> {
+    private class TaskListsTask extends AsyncTask<Integer, Integer, Tasklist[]> {
         private IOException error;
 
         @Override
-        protected List<Tasklist> doInBackground(Integer... params) {
-            try {
-                return googleTasks.getTaskLists();
-            } catch (IOException e) {
-                error = e;
-                cancel(true);
-                return null;
-            }
+        protected Tasklist[] doInBackground(Integer... params) {
+//            try {
+//                return googleTasks.getTaskLists();
+//            } catch (IOException e) {
+//                error = e;
+//                cancel(true);
+//                return null;
+//            }
+            return null;
         }
 
         @Override
         protected void onCancelled() {
             if (error != null) {
-                if (error instanceof GooglePlayServicesAvailabilityIOException)
-                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException)error)
-                            .getConnectionStatusCode());
-                else if (error instanceof UserRecoverableAuthIOException)
-                    startActivityForResult(((UserRecoverableAuthIOException)error).getIntent(), REQUEST_AUTHORIZATION);
-                else
-                    error.printStackTrace();
+//                if (error instanceof GooglePlayServicesAvailabilityIOException)
+//                    accountAccess.showGooglePlayServicesAvailabilityErrorDialog(((GooglePlayServicesAvailabilityIOException)error)
+//                            .getConnectionStatusCode());
+//                else if (error instanceof UserRecoverableAuthIOException)
+//                    startActivityForResult(((UserRecoverableAuthIOException)error).getIntent(), REQUEST_AUTHORIZATION);
+//                else
+//                    error.printStackTrace();
             }
         }
 
         @Override
-        protected void onPostExecute(List<Tasklist> tasklists) {
+        protected void onPostExecute(Tasklist[] tasklists) {
             super.onPostExecute(tasklists);
 
             JSONArray jsonArray = new JSONArray();
@@ -459,8 +487,8 @@ public class MainActivity extends AppCompatActivity
     private static final String PREF_SELECTED_TASKLIST = "selectedTasklist";
     private static final int MENU_GROUP_TASKLISTS = 200;
     private static final int MENU_TASKLISTS_START_ID = 2000;
+    private static final String PREF_ACCOUNT_NAME = "accountName";
 
-    private AccountAccess accountAccess;
-    private GoogleTasks googleTasks;
     private Drawable defaultPhotoDrawable;
+    private String accountName;
 }
