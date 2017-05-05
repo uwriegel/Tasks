@@ -1,11 +1,9 @@
 package com.gmail.uwriegel.tasks;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.DateTime;
 import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.model.TaskList;
 import com.google.api.services.tasks.model.TaskLists;
@@ -56,8 +54,13 @@ class GoogleTasks {
         for (Task task : tasks) {
             String watt = task.getTitle();
             String wott = task.getId();
+
+
         }
 
+
+        // TODO: IntentService, den mit Hilfe von HttpRequests den Webserver zyklisch befragen, sodass man die Aktion sieht
+        // TODO: Phone schlafen lagen
         // TODO: versteckt anlegen, dann result id in die DB, dann versteckt ändern auf nicht versteckt
 //        Task task = new Task();
 //        task.setTitle("New Task");

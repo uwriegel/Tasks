@@ -31,6 +31,7 @@ import com.gmail.uwriegel.tasks.json.TaskLists;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.api.services.tasks.Tasks;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -265,6 +266,8 @@ public class MainActivity extends AppCompatActivity
 
             }
         }
+
+        UpdateService.startUpdate(this, "Affe", "Schwein");
 
 //        if (activeTasklist != null)
 //        {
