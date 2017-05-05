@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        String selectedTasklist = getPreferences(Context.MODE_PRIVATE).getString(PREF_SELECTED_TASKLIST, null);
+        final String selectedTasklist = getPreferences(Context.MODE_PRIVATE).getString(PREF_SELECTED_TASKLIST, null);
 
         if (!initialzeGoogleAccountFromPreferences())
             chooseAccount();
@@ -99,13 +99,25 @@ public class MainActivity extends AppCompatActivity
             drawer.openDrawer(navigationView);
 
         // TODO: Test
+
+
+
+
         if (googleAccount != null) {
+
+
+
+
             final TasksCredential credential = new TasksCredential(MainActivity.this, googleAccount.name);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     GoogleTasks gt = new GoogleTasks(credential);
                     try {
+
+                        gt.getTest(selectedTasklist);
+
+
                         Tasklist ts = gt.getTaskLists()[0];
                         String u = ts.getTitle();
                         String id = ts.getID();
