@@ -1,5 +1,6 @@
 package com.gmail.uwriegel.tasks;
 
+import com.gmail.uwriegel.tasks.json.Tasklist;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -38,7 +39,7 @@ class GoogleTasks {
 
         List<Tasklist> resultList = new ArrayList<>();
         for (TaskList tasklist : tasklists) {
-            resultList.add(new Tasklist(tasklist.getId(), tasklist.getTitle()));
+            resultList.add(new Tasklist(tasklist.getTitle(), tasklist.getId()));
         }
         return resultList.toArray(new Tasklist[0]);
     }
@@ -59,7 +60,7 @@ class GoogleTasks {
         }
 
 
-          Task task = new Task();
+       //   Task task = new Task();
 //        task.setTitle("New Task");
 //        task.setNotes("Please complete me");
 //        task.setHidden()
