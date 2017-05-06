@@ -59,10 +59,7 @@ class GoogleTasks {
         }
 
 
-        // TODO: IntentService, den mit Hilfe von HttpRequests den Webserver zyklisch befragen, sodass man die Aktion sieht
-        // TODO: Phone schlafen lagen
-        // TODO: versteckt anlegen, dann result id in die DB, dann versteckt ändern auf nicht versteckt
-//        Task task = new Task();
+          Task task = new Task();
 //        task.setTitle("New Task");
 //        task.setNotes("Please complete me");
 //        task.setHidden()

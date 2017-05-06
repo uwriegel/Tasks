@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.media.tv.TvInputService;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -43,6 +44,8 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
+// TODO: Wechsel des Account tut noch nicht, die Tasklisten werden nicht übernommen
+// TODO: Mit Alarm BroadcastReceiver test und eigenem Webserver, ob SHaredPreferences funktionieren
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: In die Nav-Liste Kalender übernehmen
 
@@ -77,9 +80,8 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        final String selectedTasklist = getPreferences(Context.MODE_PRIVATE).getString(PREF_SELECTED_TASKLIST, null);
-
-        if (!initialzeGoogleAccountFromPreferences())
+        Boolean accountSelected = Settings.getInstance().initialzeGoogleAccountFromPreferences(this);
+        if (!accountSelected)
             chooseAccount();
 
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
@@ -96,7 +98,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (!initialzeGoogleAccountFromPreferences() || selectedTasklist == null)
+        if (!accountSelected || Settings.getInstance().getSelectedTasklist() == null)
             drawer.openDrawer(navigationView);
 
         // TODO: Test
@@ -104,33 +106,33 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        if (googleAccount != null) {
-
-
-
-
-            final TasksCredential credential = new TasksCredential(MainActivity.this, googleAccount.name);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    GoogleTasks gt = new GoogleTasks(credential);
-                    try {
-
-                        gt.getTest(selectedTasklist);
-
-
-                        Tasklist ts = gt.getTaskLists()[0];
-                        String u = ts.getTitle();
-                        String id = ts.getID();
-                        String nichts = id;
-                    } catch (IOException ie) {
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
+//        if (googleAccount != null) {
+//
+//
+//
+//
+//            final TasksCredential credential = new TasksCredential(MainActivity.this, googleAccount.name);
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    GoogleTasks gt = new GoogleTasks(credential);
+//                    try {
+//
+//                        gt.getTest(Settings.getInstance().getSelectedTasklist());
+//
+//
+//                        Tasklist ts = gt.getTaskLists()[0];
+//                        String u = ts.getTitle();
+//                        String id = ts.getID();
+//                        String nichts = id;
+//                    } catch (IOException ie) {
+//
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }).start();
+//        }
     }
 
     /**
@@ -155,34 +157,13 @@ public class MainActivity extends AppCompatActivity
                     chooseAccount();
                 break;
             case REQUEST_ACCOUNT_PICKER:
-                if (resultCode == RESULT_OK && data != null && data.getExtras() != null) {
-                    GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-                    if (result.isSuccess()) {
-                        // Signed in successfully, show authenticated UI.
-                        GoogleSignInAccount googleSignInAccount = result.getSignInAccount();
-                        if (googleSignInAccount != null) {
-                            GoogleAccount googleAccount = new GoogleAccount(googleSignInAccount.getAccount().name,
-                                    googleSignInAccount.getDisplayName(),
-                                    googleSignInAccount.getPhotoUrl());
-
-                            String settings = new Gson().toJson(googleAccount);
-                            SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString(PREF_SELECTED_TASKLIST, null);
-                            editor.putString(PREF_ACCOUNT, settings);
-                            editor.putBoolean(PREF_AVATAR_DOWNLOADED, false);
-                            editor.apply();
-
-                            initialzeGoogleAccountFromPreferences();
-
-                            NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
-                            View header =  navigationView.getHeaderView(0);
-                            setAccountInNavigationHeader(header);
-                            getTaskLists();
-                        }
-                    }
+                Settings.getInstance().onRequestAccontPicker(this, resultCode, data);
+                if (resultCode == RESULT_OK) {
+                    NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
+                    View header =  navigationView.getHeaderView(0);
+                    setAccountInNavigationHeader(header);
+                    getTaskLists();
                 }
-                AccountChooser.getInstance().onAccountPicked();
                 final ImageView image = (ImageView)findViewById(R.id.googleAccountSpinner);
                 if (image != null)
                     image.setImageResource(R.drawable.dropdown);
@@ -222,12 +203,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setAccountInNavigationHeader(View navigationHeader) {
-        if (googleAccount != null) {
+        if (Settings.getInstance().getGoogleAccount() != null) {
             TextView googleAccountView = (TextView)navigationHeader.findViewById(R.id.textViewGoogleAccount);
-            googleAccountView.setText(googleAccount.name);
+            googleAccountView.setText(Settings.getInstance().getGoogleAccount().name);
 
             TextView googleDisplay = (TextView)navigationHeader.findViewById(R.id.textViewGoogleDisplayName);
-            googleDisplay.setText(googleAccount.displayName);
+            googleDisplay.setText(Settings.getInstance().getGoogleAccount().displayName);
 
             setPhotoUrl(navigationHeader, false);
         }
@@ -257,7 +238,7 @@ public class MainActivity extends AppCompatActivity
                 MenuItem mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.name);
                 mi.setCheckable(true);
                 mi.setIcon(R.drawable.ic_list);
-                String selectedTasklist = getPreferences(Context.MODE_PRIVATE).getString(PREF_SELECTED_TASKLIST, null);
+                String selectedTasklist = Settings.getInstance().getSelectedTasklist();
                 if (selectedTasklist != null && selectedTasklist.compareTo(tasklist.id) == 0) {
                     mi.setChecked(true);
                     setTitle(mi.getTitle());
@@ -287,7 +268,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void getTaskLists() {
-        final TasksCredential credential = new TasksCredential(MainActivity.this, googleAccount.name);
+        final TasksCredential credential = new TasksCredential(MainActivity.this, Settings.getInstance().getGoogleAccount().name);
         final Handler handler = new Handler();
         new Thread(new Runnable() {
             @Override
@@ -341,7 +322,7 @@ public class MainActivity extends AppCompatActivity
         if (defaultPhotoDrawable == null)
             defaultPhotoDrawable = myImage.getDrawable();
 
-        if (getPreferences(Context.MODE_PRIVATE).getBoolean(PREF_AVATAR_DOWNLOADED, false)) {
+        if (Settings.getInstance().getIsAvatarDownloaded(this)) {
             File file = new File(getFilesDir(), AvatarDownloader.FILE);
             if (file.exists()) {
                 Bitmap myBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
@@ -350,30 +331,16 @@ public class MainActivity extends AppCompatActivity
             } else
                 myImage.setImageDrawable(defaultPhotoDrawable);
         } else if (!internal)
-            AvatarDownloader.start(this, googleAccount.photoUrl, new AvatarDownloader.IOnFinished() {
+            AvatarDownloader.start(this, Settings.getInstance().getGoogleAccount().photoUrl, new AvatarDownloader.IOnFinished() {
                 @Override
                 public void onFinished(Boolean success) {
-                    SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean(PREF_AVATAR_DOWNLOADED, true);
-                    editor.apply();
+                    Settings.getInstance().setIsAvatarDownloaded(MainActivity.this, true);
                     if (success)
                         setPhotoUrl(navigationHeader, true);
                     else
                         myImage.setImageDrawable(defaultPhotoDrawable);
                 }
             });
-    }
-
-    private Boolean initialzeGoogleAccountFromPreferences() {
-        String settings = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT, null);
-        if (settings != null) {
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-            googleAccount = gson.fromJson(settings, GoogleAccount.class);
-            return true;
-        } else
-            return false;
     }
 
     @Override
@@ -413,11 +380,7 @@ public class MainActivity extends AppCompatActivity
                 int index = id - MENU_TASKLISTS_START_ID;
                 TaskList taskList = tasklists.taskLists[index];
                 String selectedTasklist = taskList.id;
-                SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(PREF_SELECTED_TASKLIST, selectedTasklist);
-                editor.apply();
-
+                Settings.getInstance().setSelectedTasklist(this, selectedTasklist);
                 setTitle(taskList.name);
             }
         }
@@ -458,13 +421,12 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
     private static final int REQUEST_AUTHORIZATION = 1001;
-    private static final String PREF_TASKLISTS = "tasklists";
-    private static final String PREF_AVATAR_DOWNLOADED = "avatarDownloaded";
-    private static final String PREF_SELECTED_TASKLIST = "selectedTasklist";
     private static final int MENU_GROUP_TASKLISTS = 200;
     private static final int MENU_TASKLISTS_START_ID = 2000;
-    private static final String PREF_ACCOUNT = "googleAccount";
 
     private Drawable defaultPhotoDrawable;
-    private GoogleAccount googleAccount;
+
+
+// TODO: weg!!
+    private static final String PREF_TASKLISTS = "tasklists";
 }
