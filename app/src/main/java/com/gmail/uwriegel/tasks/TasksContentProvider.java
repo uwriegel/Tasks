@@ -19,11 +19,11 @@ import android.util.Log;
  */
 class TasksContentProvider extends ContentProvider {
 
-    public static final Uri CONTENT_URI = Uri.parse("content://com.gmail.uwriegel.tasks/tasklists");
+    public static final Uri CONTENT_URI = Uri.parse("content://com.gmail.uwriegel.tasks/tasks");
 
     // The index (key) column name for use in where clauses.
     public static final String KEY_ID = "_id";
-    public static final String KEY_NAME = "name";
+    public static final String KEY_TITLE = "title";
     public static final String KEY_GOOGLE_ID = "googleId";
 
     @Override
@@ -93,7 +93,7 @@ class TasksContentProvider extends ContentProvider {
         private static final String DATABASE_CREATE = "create table " +
                 DATABASE_TASKLISTS_TABLE + " (" + KEY_ID +
                 "integer primary key autoincrement, " +
-                KEY_NAME + " text not null, " +
+                KEY_TITLE + " text not null, " +
                 KEY_GOOGLE_ID + " text not null);";
     }
 
@@ -106,8 +106,8 @@ class TasksContentProvider extends ContentProvider {
     // items, and ‘elements/[rowID]’ represents a single row.
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasklists", ALLROWS);
-        uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasklists/#", SINGLE_ROW);
+        uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasks", ALLROWS);
+        uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasks/#", SINGLE_ROW);
     }
 
 }

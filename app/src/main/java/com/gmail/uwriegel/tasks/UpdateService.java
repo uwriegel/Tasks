@@ -5,12 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.model.Tasks;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -63,7 +66,16 @@ public class UpdateService extends IntentService {
             com.google.api.services.tasks.Tasks service = new com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential.getCredential())
                     .setApplicationName("Aufgaben")
                     .build();
-            Tasks result2 = service.tasks().list(selectedTasklist).setShowCompleted(false).setUpdatedMin("2017-05-01T00:00:00.000Z").execute();
+            Tasks result2 = service.tasks().list(selectedTasklist)
+                    .setFields("items(id,title,notes,due,updated),nextPageToken")
+                    //.setFields("items(id,title,notes,due,updated,status)")
+//                    .setShowCompleted(true)
+                    //.setPageToken()
+
+                    .setShowCompleted(false)
+                    .setUpdatedMin("2017-05-01T00:00:00.000Z")
+                    .execute();
+                    //.setShowCompleted(false).setUpdatedMin("2017-02-01T00:00:00.000Z").execute();
             List<Task> tasks = result2.getItems();
             for (Task task : tasks) {
                 String watt = task.getTitle();
