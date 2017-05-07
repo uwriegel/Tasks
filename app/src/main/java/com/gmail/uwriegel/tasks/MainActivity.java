@@ -30,7 +30,6 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-// TODO: Mit Alarm BroadcastReceiver test und eigenem Webserver, ob SharedPreferences funktionieren
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: In die Nav-Liste Kalender übernehmen
 
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity
             chooseAccount();
 
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
-        View header =  navigationView.getHeaderView(0);
+        View header = navigationView.getHeaderView(0);
         navigationView.setNavigationItemSelectedListener(this);
         setAccountInNavigationHeader(header);
         initializeNavigationDrawer();
@@ -83,41 +82,10 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (!accountSelected || Settings.getInstance().getSelectedTasklist() == null)
+        if (accountSelected && Settings.getInstance().getSelectedTasklist() != null)
+            UpdateService.startUpdate(this, Settings.getInstance().getGoogleAccount().name, Settings.getInstance().getSelectedTasklist());
+        else
             drawer.openDrawer(navigationView);
-
-        // TODO: Test
-
-
-
-
-//        if (googleAccount != null) {
-//
-//
-//
-//
-//            final TasksCredential credential = new TasksCredential(MainActivity.this, googleAccount.name);
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    GoogleTasks gt = new GoogleTasks(credential);
-//                    try {
-//
-//                        gt.getTest(Settings.getInstance().getSelectedTasklist());
-//
-//
-//                        Tasklist ts = gt.getTaskLists()[0];
-//                        String u = ts.getTitle();
-//                        String id = ts.getID();
-//                        String nichts = id;
-//                    } catch (IOException ie) {
-//
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }).start();
-//        }
     }
 
     /**
@@ -232,20 +200,6 @@ public class MainActivity extends AppCompatActivity
                     mi.setChecked(false);
             }
         }
-
-        UpdateService.startUpdate(this, "Affe", "Schwein");
-
-//        if (activeTasklist != null)
-//        {
-//            Intent intent = new Intent(this, UpdateService.class);
-//            intent.putExtra(UpdateService.ACTION, UpdateService.ACTION_TASKLISTS);
-//            startService(intent);
-//        }
-//        else
-//        {
-//            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//            drawer.openDrawer(navigationView);
-//        }
     }
 
     private void chooseAccount() {

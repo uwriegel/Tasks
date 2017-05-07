@@ -11,10 +11,18 @@ import com.gmail.uwriegel.tasks.json.Tasklists;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.tasks.Tasks;
+import com.google.api.services.tasks.model.TaskList;
+import com.google.api.services.tasks.model.TaskLists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -123,16 +131,23 @@ class Settings {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                GoogleTasks googleTasks = new GoogleTasks(credential);
                 try {
-                    Tasklist[] googleTasklists = googleTasks.getTaskLists();
+                    HttpTransport transport = AndroidHttp.newCompatibleTransport();
+                    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+                    Tasks service = new com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, credential.getCredential())
+                            .setApplicationName("Aufgaben")
+                            .build();
+
+                    TaskLists result = service.tasklists().list()
+                            .setMaxResults(10L)
+                            .execute();
+                    List<TaskList> googleTasklists = result.getItems();
                     ArrayList<Tasklist> tasklists = new ArrayList<Tasklist>();
-                    for (Tasklist googleTasklist : googleTasklists) {
-                        Tasklist taskList = new Tasklist(googleTasklist.name, googleTasklist.id);
+                    for (TaskList googleTasklist : googleTasklists) {
+                        Tasklist taskList = new Tasklist(googleTasklist.getTitle(), googleTasklist.getId());
                         tasklists.add(taskList);
                     }
                     Tasklists taskLists = new Tasklists(tasklists.toArray(new Tasklist[0]));
-
                     String taskListsString = new Gson().toJson(taskLists);
                     SharedPreferences sharedPreferences = getPreferences(context);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
