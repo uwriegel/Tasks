@@ -31,6 +31,7 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
+// TODO: Wenn kein due, dann Jahr 3000 verwenden
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: In die Nav-Liste Kalender übernehmen
 

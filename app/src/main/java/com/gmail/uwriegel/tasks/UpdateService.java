@@ -1,8 +1,11 @@
 package com.gmail.uwriegel.tasks;
 
 import android.app.IntentService;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.http.HttpRequest;
@@ -66,24 +69,42 @@ public class UpdateService extends IntentService {
             com.google.api.services.tasks.Tasks service = new com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential.getCredential())
                     .setApplicationName("Aufgaben")
                     .build();
-            Tasks result2 = service.tasks().list(selectedTasklist)
+            Tasks result = service.tasks().list(selectedTasklist)
                     .setFields("items(id,title,notes,due,updated),nextPageToken")
                     //.setFields("items(id,title,notes,due,updated,status)")
 //                    .setShowCompleted(true)
                     //.setPageToken()
 
                     .setShowCompleted(false)
-                    .setUpdatedMin("2017-05-01T00:00:00.000Z")
+                    //.setUpdatedMin("2017-05-01T00:00:00.000Z")
                     .execute();
                     //.setShowCompleted(false).setUpdatedMin("2017-02-01T00:00:00.000Z").execute();
-            List<Task> tasks = result2.getItems();
-            for (Task task : tasks) {
-                String watt = task.getTitle();
-                String wott = task.getId();
-            }
+            List<Task> tasks = result.getItems();
+            for (Task task : tasks)
+                insertTask(task);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void insertTask(Task task) {
+        ContentResolver cr = getContentResolver();
+
+        // Construct a where clause to make sure we don’t already have this
+        // earthquake in the provider.
+        String where = TasksContentProvider.KEY_GOOGLE_ID + " = '" + task.getId() + "'";
+        // If the earthquake is new, insert it into the provider.
+        Cursor query = cr.query(TasksContentProvider.CONTENT_URI, null, where, null, null);
+        if (query.getCount() == 0) {
+            ContentValues values = new ContentValues();
+            values.put(TasksContentProvider.KEY_GOOGLE_ID, task.getId());
+            values.put(TasksContentProvider.KEY_TITLE, task.getTitle());
+            values.put(TasksContentProvider.KEY_Notes, task.getNotes());
+            values.put(TasksContentProvider.KEY_DUE, task.getDue().getValue());
+            values.put(TasksContentProvider.KEY_UPDATED, task.getUpdated().getValue());
+            cr.insert(TasksContentProvider.CONTENT_URI, values);
+        }
+        query.close();
     }
 
     private static final String ACTION_UPDATE = "com.gmail.uwriegel.tasks.action.update";
