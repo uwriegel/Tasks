@@ -27,6 +27,12 @@
             android:name=".UpdateService"
             android:exported="false">
         </service>
+
+        <provider
+            android:name=".TasksContentProvider"
+            android:authorities="com.gmail.uwriegel.tasks"
+            android:enabled="true"
+            android:exported="true"/>
     </application>
 
 </manifest>
