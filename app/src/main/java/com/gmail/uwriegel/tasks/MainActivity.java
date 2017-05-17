@@ -14,6 +14,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -106,6 +108,11 @@ public class MainActivity extends AppCompatActivity
             UpdateService.startUpdate(this, Settings.getInstance().getGoogleAccount().name, Settings.getInstance().getSelectedTasklist());
         else
             drawer.openDrawer(navigationView);
+
+        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recycler);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(llm);
     }
 
     /**
