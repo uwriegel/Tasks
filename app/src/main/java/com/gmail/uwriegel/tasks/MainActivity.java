@@ -1,6 +1,8 @@
 package com.gmail.uwriegel.tasks;
 
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -9,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -110,9 +113,19 @@ public class MainActivity extends AppCompatActivity
             drawer.openDrawer(navigationView);
 
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recycler);
+        recyclerView.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
+
+        String[] projection = new String[]{
+                TasksContentProvider.KEY_ID,
+                TasksContentProvider.KEY_TITLE,
+                TasksContentProvider.KEY_Notes,
+                TasksContentProvider.KEY_DUE,
+        };
+        RecyclerView.Adapter adapter = new TaskAdapter(this);
+        recyclerView.setAdapter(adapter);
     }
 
     /**
@@ -341,6 +354,7 @@ public class MainActivity extends AppCompatActivity
     public void onPermissionsDenied(int requestCode, List<String> list) {
         // Do nothing.
     }
+
     static final String TAG = "Tasks";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
