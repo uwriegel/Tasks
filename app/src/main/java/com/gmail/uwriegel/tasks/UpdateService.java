@@ -81,13 +81,13 @@ public class UpdateService extends IntentService {
                     //.setShowCompleted(false).setUpdatedMin("2017-02-01T00:00:00.000Z").execute();
             List<Task> tasks = result.getItems();
             for (Task task : tasks)
-                insertTask(task);
+                insertTask(selectedTasklist, task);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void insertTask(Task task) {
+    private void insertTask(String taskTableId, Task task) {
         ContentResolver cr = getContentResolver();
 
         // Construct a where clause to make sure we don’t already have this
@@ -97,6 +97,7 @@ public class UpdateService extends IntentService {
         Cursor query = cr.query(TasksContentProvider.CONTENT_URI, null, where, null, null);
         if (query.getCount() == 0) {
             ContentValues values = new ContentValues();
+            values.put(TasksContentProvider.KEY_TASK_TABLE_ID, taskTableId);
             values.put(TasksContentProvider.KEY_GOOGLE_ID, task.getId());
             values.put(TasksContentProvider.KEY_TITLE, task.getTitle());
             values.put(TasksContentProvider.KEY_Notes, task.getNotes());

@@ -27,6 +27,7 @@ public class TasksContentProvider extends ContentProvider {
 
     // The index (key) column name for use in where clauses.
     public static final String KEY_ID = "_id";
+    public static final String KEY_TASK_TABLE_ID = "tasksId";
     public static final String KEY_GOOGLE_ID = "googleId";
     public static final String KEY_TITLE = "title";
     public static final String KEY_Notes = "notes";
@@ -63,6 +64,13 @@ public class TasksContentProvider extends ContentProvider {
             orderBy = KEY_DUE;
         else
             orderBy = sortOrder;
+
+        String taskList = Settings.getInstance().getSelectedTasklist();
+        String tasklistRestriction = KEY_TASK_TABLE_ID + " = '" + taskList + "'";
+        if (selection == null)
+            selection = tasklistRestriction;
+        else
+            selection += " AND " + tasklistRestriction;
 
         // Apply the query to the underlying database.
         Cursor c = qb.query(database, projection, selection, selectionArgs, null, null, orderBy);
@@ -139,6 +147,7 @@ public class TasksContentProvider extends ContentProvider {
 
         private static final String DATABASE_CREATE = "create table " +
                 DATABASE_TASKS_TABLE + " (" + KEY_ID + " integer primary key autoincrement, " +
+                KEY_TASK_TABLE_ID + " text not null, " +
                 KEY_TITLE + " text not null, " +
                 KEY_Notes + " text, " +
                 KEY_GOOGLE_ID + " text, " +

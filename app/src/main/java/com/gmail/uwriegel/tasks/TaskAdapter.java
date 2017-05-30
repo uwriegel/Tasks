@@ -2,8 +2,8 @@ package com.gmail.uwriegel.tasks;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;

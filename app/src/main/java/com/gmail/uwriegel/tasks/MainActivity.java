@@ -1,8 +1,6 @@
 package com.gmail.uwriegel.tasks;
 
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -10,8 +8,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -321,6 +317,7 @@ public class MainActivity extends AppCompatActivity
                 String selectedTasklist = taskList.id;
                 Settings.getInstance().setSelectedTasklist(this, selectedTasklist);
                 setTitle(taskList.name);
+                UpdateService.startUpdate(this, Settings.getInstance().getGoogleAccount().name, Settings.getInstance().getSelectedTasklist());
             }
         }
 
