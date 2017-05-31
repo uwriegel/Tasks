@@ -26,9 +26,9 @@ class TasksContentProvider : ContentProvider() {
         return true
     }
 
-    override fun query(uri: Uri, projection: Array<String>?, aselection: String?,
+    override fun query(uri: Uri, projection: Array<String>?, selection: String?,
                        selectionArgs: Array<String>?, sortOrder: String?): Cursor? {
-        var selection = aselection
+        var extendedSelection = selection
         val database = dbHelper?.writableDatabase
         val qb = SQLiteQueryBuilder()
         qb.tables = TasksSQLiteOpenHelper.DATABASE_TASKS_TABLE
@@ -52,20 +52,20 @@ class TasksContentProvider : ContentProvider() {
 
         val taskList = Settings.instance.selectedTasklist
         val tasklistRestriction = "$KEY_TASK_TABLE_ID = '$taskList'"
-        if (selection == null)
-            selection = tasklistRestriction
+        if (extendedSelection == null)
+            extendedSelection = tasklistRestriction
         else
-            selection += " AND " + tasklistRestriction
+            extendedSelection += " AND " + tasklistRestriction
 
         // Apply the query to the underlying database.
-        val c = qb.query(database, projection, selection, selectionArgs, null, null, orderBy)
+        val c = qb.query(database, projection, extendedSelection, selectionArgs, null, null, orderBy)
         // Register the contexts ContentResolver to be notified if
         // the cursor result set changes.
         c.setNotificationUri(context!!.contentResolver, uri)
         return c
     }
 
-    override fun getType(uri: Uri): String? {
+    override fun getType(uri: Uri): String {
         when (uriMatcher.match(uri)) {
             ALLROWS -> return "vnd.android.cursor.dir/vnd.uwriegel.tasks"
             SINGLE_ROW -> return "vnd.android.cursor.item/vnd.uwriegel.tasks"
@@ -73,7 +73,7 @@ class TasksContentProvider : ContentProvider() {
         }
     }
 
-    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+    override fun insert(uri: Uri, values: ContentValues?): Uri {
         val database = dbHelper?.writableDatabase
 
         // Insert the new row. The call to database.insert will return the row number if it is successful.
@@ -133,7 +133,7 @@ class TasksContentProvider : ContentProvider() {
 
     companion object {
 
-        val CONTENT_URI = Uri.parse("content://com.gmail.uwriegel.tasks/tasks")
+        val CONTENT_URI: Uri = Uri.parse("content://com.gmail.uwriegel.tasks/tasks")
 
         // The index (key) column name for use in where clauses.
         val KEY_ID = "_id"
@@ -146,13 +146,12 @@ class TasksContentProvider : ContentProvider() {
 
         private val ALLROWS = 1
         private val SINGLE_ROW = 2
-        private val uriMatcher: UriMatcher
+        private val uriMatcher: UriMatcher = UriMatcher(UriMatcher.NO_MATCH)
 
         // Populate the UriMatcher object, where a URI ending
         // in ‘elements’ will correspond to a request for all
         // items, and ‘elements/[rowID]’ represents a single row.
         init {
-            uriMatcher = UriMatcher(UriMatcher.NO_MATCH)
             uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasks", ALLROWS)
             uriMatcher.addURI("content://com.gmail.uwriegel.tasks", "tasks/#", SINGLE_ROW)
         }

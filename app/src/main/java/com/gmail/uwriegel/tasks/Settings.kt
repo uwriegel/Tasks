@@ -29,7 +29,7 @@ import android.app.Activity.RESULT_OK
  * Created by urieg on 06.05.2017.
  */
 
-internal class Settings private constructor() {
+class Settings private constructor() {
 
     internal interface ICallback {
         fun onTasklistsUpdated()
@@ -43,29 +43,29 @@ internal class Settings private constructor() {
         editor.apply()
     }
 
-    fun getIsAvatarDownloaded(context: Context): Boolean? {
+    fun getIsAvatarDownloaded(context: Context): Boolean {
         return getPreferences(context).getBoolean(PREF_AVATAR_DOWNLOADED, false)
     }
 
-    fun setIsAvatarDownloaded(context: Context, value: Boolean?) {
+    fun setIsAvatarDownloaded(context: Context, value: Boolean) {
         val sharedPreferences = getPreferences(context)
         val editor = sharedPreferences.edit()
-        editor.putBoolean(PREF_AVATAR_DOWNLOADED, value!!)
+        editor.putBoolean(PREF_AVATAR_DOWNLOADED, value)
         editor.apply()
     }
 
-    fun getTasklists(context: Context): Tasklists? {
+    fun getTasklists(context: Context): Tasklists {
         val settings = getPreferences(context).getString(PREF_TASKLISTS, null)
         if (settings != null) {
             val builder = GsonBuilder()
             val gson = builder.create()
             return gson.fromJson<Tasklists>(settings, Tasklists::class.java)
         } else
-            return null
+            return Tasklists()
     }
 
     fun initialzeGoogleAccountFromPreferences(context: Context): Boolean {
-        selectedTasklist = getPreferences(context).getString(PREF_SELECTED_TASKLIST, null)
+        selectedTasklist = getPreferences(context).getString(PREF_SELECTED_TASKLIST, null) ?: ""
         val settings = getPreferences(context).getString(PREF_ACCOUNT, null)
         if (settings != null) {
             val builder = GsonBuilder()
@@ -84,21 +84,19 @@ internal class Settings private constructor() {
      * *
      * @param callback Callback on TaskListUpdate
      */
-    fun onRequestAccontPicker(context: Context, resultCode: Int, data: Intent?, callback: ICallback) {
+    internal fun onRequestAccontPicker(context: Context, resultCode: Int, data: Intent?, callback: ICallback) {
         if (resultCode == RESULT_OK && data != null && data.extras != null) {
             val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
             if (result.isSuccess) {
                 // Signed in successfully, show authenticated UI.
                 val googleSignInAccount = result.signInAccount
                 if (googleSignInAccount != null) {
-                    val googleAccount = GoogleAccount(googleSignInAccount.account!!.name,
-                            googleSignInAccount.displayName,
-                            googleSignInAccount.photoUrl)
+                    val googleAccount = GoogleAccount(googleSignInAccount.account!!.name, googleSignInAccount.displayName!!, googleSignInAccount.photoUrl)
 
                     val settings = Gson().toJson(googleAccount)
                     val sharedPreferences = getPreferences(context)
                     val editor = sharedPreferences.edit()
-                    selectedTasklist = null
+                    selectedTasklist = ""
                     editor.putString(PREF_SELECTED_TASKLIST, selectedTasklist)
                     editor.putString(PREF_ACCOUNT, settings)
                     editor.putBoolean(PREF_AVATAR_DOWNLOADED, false)
@@ -112,7 +110,7 @@ internal class Settings private constructor() {
         AccountChooser.instance.onAccountPicked()
     }
 
-    private fun updateTaskLists(context: Context, callback: ICallback?) {
+    private fun updateTaskLists(context: Context, callback: ICallback) {
         val credential = TasksCredential(context, Settings.instance.googleAccount?.name)
         val handler = Handler()
         Thread(Runnable {
@@ -132,7 +130,7 @@ internal class Settings private constructor() {
                     val taskList = Tasklist(googleTasklist.title, googleTasklist.id)
                     tasklists.add(taskList)
                 }
-                val taskLists = Tasklists(tasklists.toTypedArray<Tasklist>())
+                val taskLists = Tasklists(tasklists.toTypedArray())
                 val taskListsString = Gson().toJson(taskLists)
                 val sharedPreferences = getPreferences(context)
                 val editor = sharedPreferences.edit()
@@ -140,7 +138,7 @@ internal class Settings private constructor() {
                 editor.apply()
 
                 handler.post {
-                    callback?.onTasklistsUpdated()
+                    callback.onTasklistsUpdated()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -154,7 +152,7 @@ internal class Settings private constructor() {
 
     var googleAccount: GoogleAccount? = null
         private set
-    var selectedTasklist: String? = null
+    var selectedTasklist: String = ""
         private set
 
     companion object {

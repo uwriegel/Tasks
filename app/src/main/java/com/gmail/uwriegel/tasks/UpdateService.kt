@@ -36,8 +36,6 @@ class UpdateService : IntentService("UpdateService") {
                     val selectedTasklist = intent.getStringExtra(EXTRA_SELECTED_TASKLIST)
                     handleActionUpdate(accountName, selectedTasklist)
                 }
-                else -> {
-                }
             }
         }
     }

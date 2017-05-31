@@ -14,11 +14,11 @@ import android.util.AttributeSet
 
 class CircularImageView : android.support.v7.widget.AppCompatImageView {
 
-    constructor(context: Context) : super(context) {}
+    constructor(context: Context) : super(context)
 
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
 
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {}
+    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle)
 
     private fun getCroppedBitmap(bmp: Bitmap, radius: Int): Bitmap {
         val bitmap: Bitmap
@@ -27,12 +27,10 @@ class CircularImageView : android.support.v7.widget.AppCompatImageView {
             val smallest = Math.min(bmp.width, bmp.height).toFloat()
             val factor = smallest / radius
             bitmap = Bitmap.createScaledBitmap(bmp, (bmp.width / factor).toInt(), (bmp.height / factor).toInt(), false)
-        } else {
+        } else
             bitmap = bmp
-        }
 
-        val output = Bitmap.createBitmap(radius, radius,
-                Bitmap.Config.ARGB_8888)
+        val output = Bitmap.createBitmap(radius, radius, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(output)
 
         val paint = Paint()
@@ -43,8 +41,7 @@ class CircularImageView : android.support.v7.widget.AppCompatImageView {
         paint.isDither = true
         canvas.drawARGB(0, 0, 0, 0)
         paint.color = Color.parseColor("#BAB399")
-        canvas.drawCircle(radius / 2 + 0.7f,
-                radius / 2 + 0.7f, radius / 2 + 0.1f, paint)
+        canvas.drawCircle(radius / 2 + 0.7f, radius / 2 + 0.7f, radius / 2 + 0.1f, paint)
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(bitmap, rect, rect, paint)
 
@@ -65,7 +62,5 @@ class CircularImageView : android.support.v7.widget.AppCompatImageView {
 
         val roundBitmap = getCroppedBitmap(bitmap, w)
         canvas.drawBitmap(roundBitmap, 0f, 0f, null)
-
     }
-
 }

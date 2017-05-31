@@ -21,18 +21,16 @@ internal object AvatarDownloader {
 
     fun start(mainActivity: Activity, urlString: String, onFinished: IOnFinished) {
         val file = File(mainActivity.filesDir, FILE)
-        if (file.exists()) {
+        if (file.exists())
             try {
                 file.delete()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
-        }
-
         val handler = Handler()
         Thread(Runnable {
-            var success: Boolean? = false
+            var success: Boolean = false
             try {
                 val url = URL(urlString)
                 val httpConnection = url.openConnection() as HttpURLConnection
@@ -53,13 +51,13 @@ internal object AvatarDownloader {
             } catch (e: IOException) {
                 e.printStackTrace()
             } finally {
-                val result = success!!
+                val result = success
                 handler.post { onFinished.onFinished(result) }
             }
         }).start()
     }
 
     internal interface IOnFinished {
-        fun onFinished(success: Boolean?)
+        fun onFinished(success: Boolean)
     }
 }

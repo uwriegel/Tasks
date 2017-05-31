@@ -2,49 +2,21 @@ package com.gmail.uwriegel.tasks
 
 import android.Manifest
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
-import android.content.Intent
 import android.support.v4.app.FragmentActivity
 import android.util.Log
 import com.gmail.uwriegel.tasks.MainActivity.Companion.TAG
-
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
-
 import pub.devrel.easypermissions.EasyPermissions
 
 /**
  * Created by urieg on 21.04.2017.
  */
-internal class AccountChooser private constructor() {
-
-    /**
-     * Check that Google Play services APK is installed and up to date.
-
-     * @return true if Google Play Services is available and up to
-     * * date on this device; false otherwise.
-     */
-    private val isGooglePlayServicesAvailable: Boolean
-        get() {
-            val apiAvailability = GoogleApiAvailability.getInstance()
-            val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(context!!)
-            return connectionStatusCode == ConnectionResult.SUCCESS
-        }
-
-    /**
-     * Attempt to resolve a missing, out-of-date, invalid or disabled Google
-     * Play Services installation via a user dialog, if possible.
-     */
-    private fun acquireGooglePlayServices() {
-        val apiAvailability = GoogleApiAvailability.getInstance()
-        val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(context!!)
-        if (apiAvailability.isUserResolvableError(connectionStatusCode))
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
-    }
+class AccountChooser private constructor() {
 
     fun initialize(context: Context) {
         this.context = context
@@ -70,7 +42,7 @@ internal class AccountChooser private constructor() {
 
     fun onAccountPicked() {
         Auth.GoogleSignInApi.signOut(googleApiClient)
-        googleApiClient!!.stopAutoManage((context as FragmentActivity?)!!)
+        googleApiClient?.stopAutoManage((context as FragmentActivity?)!!)
         googleApiClient = null
         context = null
     }
@@ -84,11 +56,32 @@ internal class AccountChooser private constructor() {
      */
     fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int) {
         val apiAvailability = GoogleApiAvailability.getInstance()
-        val dialog = apiAvailability.getErrorDialog(
-                context as Activity?,
-                connectionStatusCode,
-                MainActivity.REQUEST_GOOGLE_PLAY_SERVICES)
+        val dialog = apiAvailability.getErrorDialog(context as Activity?, connectionStatusCode, MainActivity.REQUEST_GOOGLE_PLAY_SERVICES)
         dialog.show()
+    }
+
+    /**
+     * Check that Google Play services APK is installed and up to date.
+
+     * @return true if Google Play Services is available and up to
+     * * date on this device; false otherwise.
+     */
+    private val isGooglePlayServicesAvailable: Boolean
+        get() {
+            val apiAvailability = GoogleApiAvailability.getInstance()
+            val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(context!!)
+            return connectionStatusCode == ConnectionResult.SUCCESS
+        }
+
+    /**
+     * Attempt to resolve a missing, out-of-date, invalid or disabled Google
+     * Play Services installation via a user dialog, if possible.
+     */
+    private fun acquireGooglePlayServices() {
+        val apiAvailability = GoogleApiAvailability.getInstance()
+        val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(context!!)
+        if (apiAvailability.isUserResolvableError(connectionStatusCode))
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
     }
 
     private var context: Context? = null

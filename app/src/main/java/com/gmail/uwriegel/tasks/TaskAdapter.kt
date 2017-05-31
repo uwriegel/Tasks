@@ -25,7 +25,7 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
             val cr = context.contentResolver
             cursor = cr.query(TasksContentProvider.CONTENT_URI, projection, null, null, null)
             try {
-                this@TaskAdapter.notifyDataSetChanged()
+                this.notifyDataSetChanged()
             } catch (ise: IllegalStateException) {
 
             }
@@ -38,29 +38,20 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
     }
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-        cursor!!.moveToPosition(position)
-        holder.viewTitle.text = cursor!!.getString(1)
-        holder.viewNotes.text = cursor!!.getString(2)
+        cursor?.moveToPosition(position)
+        holder.viewTitle.text = cursor?.getString(1)
+        holder.viewNotes.text = cursor?.getString(2)
     }
 
     override fun getItemCount(): Int {
-
-        if (cursor == null)
-            return 0
-        else
-            return cursor!!.count
+        return cursor?.count ?: 0
     }
 
     class TaskViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-        var viewTitle: TextView
-        var viewNotes: TextView
-        protected var viewDue: TextView
+        var viewTitle: TextView = v.findViewById(R.id.viewTitle) as TextView
+        var viewNotes: TextView = v.findViewById(R.id.viewNotes) as TextView
+        protected var viewDue: TextView = v.findViewById(R.id.viewDue) as TextView
 
-        init {
-            viewTitle = v.findViewById(R.id.viewTitle) as TextView
-            viewNotes = v.findViewById(R.id.viewNotes) as TextView
-            viewDue = v.findViewById(R.id.viewDue) as TextView
-        }
     }
 
     internal var cursor: Cursor? = null
