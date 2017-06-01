@@ -23,8 +23,11 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
         val handler = Handler()
         Thread(Runnable {
             val cr = context.contentResolver
-            cursor = cr.query(TasksContentProvider.CONTENT_URI, projection, null, null, null)
-            handler.post(Runnable(this::notifyDataSetChanged))
+            val taskList = Settings.instance.selectedTasklist
+            cursor = cr.query(TasksContentProvider.CONTENT_URI, projection, "${TasksContentProvider.KEY_TASK_TABLE_ID} = '$taskList'", null, null)
+            handler.post({
+                notifyDataSetChanged()
+            })
         }).start()
     }
 

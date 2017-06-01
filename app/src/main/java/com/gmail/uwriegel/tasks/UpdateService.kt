@@ -68,14 +68,14 @@ class UpdateService : IntentService("UpdateService") {
     }
 
     private fun insertTask(taskTableId: String, task: Task) {
-        val cr = contentResolver
+        val contentResolver = contentResolver
 
         // Construct a where clause to make sure we don’t already have this
         // earthquake in the provider.
-        val where = TasksContentProvider.KEY_GOOGLE_ID + " = '" + task.id + "'"
+        val where = "${TasksContentProvider.KEY_GOOGLE_ID} = '${task.id}'"
         // If the earthquake is new, insert it into the provider.
-        val query = cr.query(TasksContentProvider.CONTENT_URI, null, where, null, null)
-        if (query!!.count == 0) {
+        val query = contentResolver.query(TasksContentProvider.CONTENT_URI, null, where, null, null)
+        if (query?.count == 0) {
             val values = ContentValues()
             values.put(TasksContentProvider.KEY_TASK_TABLE_ID, taskTableId)
             values.put(TasksContentProvider.KEY_GOOGLE_ID, task.id)
@@ -83,7 +83,7 @@ class UpdateService : IntentService("UpdateService") {
             values.put(TasksContentProvider.KEY_Notes, task.notes)
             values.put(TasksContentProvider.KEY_DUE, task.due.value)
             values.put(TasksContentProvider.KEY_UPDATED, task.updated.value)
-            cr.insert(TasksContentProvider.CONTENT_URI, values)
+            contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
         }
         query.close()
     }

@@ -28,7 +28,6 @@ class TasksContentProvider : ContentProvider() {
 
     override fun query(uri: Uri, projection: Array<String>?, selection: String?,
                        selectionArgs: Array<String>?, sortOrder: String?): Cursor? {
-        var extendedSelection = selection
         val database = dbHelper?.writableDatabase
         val qb = SQLiteQueryBuilder()
         qb.tables = TasksSQLiteOpenHelper.DATABASE_TASKS_TABLE
@@ -44,13 +43,10 @@ class TasksContentProvider : ContentProvider() {
         //            default:
         //                break;
         // If no sort order is specified, sort by date / time
-        val orderBy = if (TextUtils.isEmpty(sortOrder))  KEY_DUE else sortOrder
-        val taskList = Settings.instance.selectedTasklist
-        val tasklistRestriction = "$KEY_TASK_TABLE_ID = '$taskList'"
-        extendedSelection = if (extendedSelection == null) tasklistRestriction else "$extendedSelection  AND $tasklistRestriction"
+        val orderBy = if (TextUtils.isEmpty(sortOrder)) KEY_DUE else sortOrder
 
         // Apply the query to the underlying database.
-        val cursor = qb.query(database, projection, extendedSelection, selectionArgs, null, null, orderBy)
+        val cursor = qb.query(database, projection, selection, selectionArgs, null, null, orderBy)
         // Register the contexts ContentResolver to be notified if
         // the cursor result set changes.
         cursor.setNotificationUri(context!!.contentResolver, uri)
@@ -109,11 +105,11 @@ class TasksContentProvider : ContentProvider() {
             val DATABASE_TASKS_TABLE = "Tasks"
             private val DATABASE_VERSION = 1
 
-            private val DATABASE_CREATE = "CREATE TABLE $DATABASE_TASKS_TABLE $KEY_ID INTEGER PRIMARY KEY AUTOIBCREMENT, " +
+            private val DATABASE_CREATE = "CREATE TABLE $DATABASE_TASKS_TABLE ($KEY_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "$KEY_TASK_TABLE_ID TEXT NOT NULL, " +
                     "$KEY_TITLE TEXT NOT NULL, " +
                     "$KEY_Notes TEXT, " +
-                    "$KEY_GOOGLE_ID TEXT, " +
+                    "$KEY_GOOGLE_ID TEXT UNIQUE, " +
                     "$KEY_DUE INTEGER, " +
                     "$KEY_UPDATED INTEGER);"
         }
