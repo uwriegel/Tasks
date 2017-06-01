@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.Handler
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
@@ -24,6 +25,7 @@ import android.widget.TextView
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.File
+import java.util.concurrent.ForkJoinTask
 
 // TODO: Nach UpdateService Einträge anzeigen
 // TODO: Wenn kein due, dann Jahr 3000 verwenden
@@ -80,7 +82,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         if (accountSelected && Settings.instance.selectedTasklist != "")
-            UpdateService.startUpdate(this, Settings.instance.googleAccount?.name!!, Settings.instance.selectedTasklist)
+            UpdateService.startUpdate(this, Settings.instance.googleAccount?.name!!,
+                    Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
         else
             drawer.openDrawer(navigationView)
 
@@ -158,6 +161,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
+    fun notifyDataSetChanged() {
+        val recyclerView = findViewById(R.id.recycler) as RecyclerView
+        (recyclerView.adapter as TaskAdapter).notifyDataSetChanged()
     }
 
     private fun setAccountInNavigationHeader(navigationHeader: View) {
@@ -277,7 +285,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 val selectedTasklist = taskList.id
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
-                UpdateService.startUpdate(this, Settings.instance.googleAccount!!.name, Settings.instance.selectedTasklist)
+                UpdateService.startUpdate(this, Settings.instance.googleAccount!!.name,
+                        Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
                 val recyclerView = findViewById(R.id.recycler) as RecyclerView
                 recyclerView.adapter = TaskAdapter(this)
             }
