@@ -278,6 +278,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
                 UpdateService.startUpdate(this, Settings.instance.googleAccount!!.name, Settings.instance.selectedTasklist)
+                val recyclerView = findViewById(R.id.recycler) as RecyclerView
+                recyclerView.adapter = TaskAdapter(this)
             }
         }
 

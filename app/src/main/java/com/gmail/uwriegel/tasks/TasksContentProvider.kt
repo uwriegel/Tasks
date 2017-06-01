@@ -44,32 +44,24 @@ class TasksContentProvider : ContentProvider() {
         //            default:
         //                break;
         // If no sort order is specified, sort by date / time
-        val orderBy: String?
-        if (TextUtils.isEmpty(sortOrder))
-            orderBy = KEY_DUE
-        else
-            orderBy = sortOrder
-
+        val orderBy = if (TextUtils.isEmpty(sortOrder))  KEY_DUE else sortOrder
         val taskList = Settings.instance.selectedTasklist
         val tasklistRestriction = "$KEY_TASK_TABLE_ID = '$taskList'"
-        if (extendedSelection == null)
-            extendedSelection = tasklistRestriction
-        else
-            extendedSelection += " AND " + tasklistRestriction
+        extendedSelection = if (extendedSelection == null) tasklistRestriction else "$extendedSelection  AND $tasklistRestriction"
 
         // Apply the query to the underlying database.
-        val c = qb.query(database, projection, extendedSelection, selectionArgs, null, null, orderBy)
+        val cursor = qb.query(database, projection, extendedSelection, selectionArgs, null, null, orderBy)
         // Register the contexts ContentResolver to be notified if
         // the cursor result set changes.
-        c.setNotificationUri(context!!.contentResolver, uri)
-        return c
+        cursor.setNotificationUri(context!!.contentResolver, uri)
+        return cursor
     }
 
     override fun getType(uri: Uri): String {
         when (uriMatcher.match(uri)) {
             ALLROWS -> return "vnd.android.cursor.dir/vnd.uwriegel.tasks"
             SINGLE_ROW -> return "vnd.android.cursor.item/vnd.uwriegel.tasks"
-            else -> throw IllegalArgumentException("Unsupported URI: " + uri)
+            else -> throw IllegalArgumentException("Unsupported URI: $uri")
         }
     }
 
@@ -81,11 +73,11 @@ class TasksContentProvider : ContentProvider() {
         // Return a URI to the newly inserted row on success.
         if (rowID > 0) {
             val resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID)
-            context!!.contentResolver.notifyChange(resultUri, null)
+            context?.contentResolver?.notifyChange(resultUri, null)
             return resultUri
         }
 
-        throw SQLException("Failed to insert row into " + uri)
+        throw SQLException("Failed to insert row into $uri")
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?): Int {
@@ -96,17 +88,16 @@ class TasksContentProvider : ContentProvider() {
         return 0
     }
 
-    private class TasksSQLiteOpenHelper(context: Context) : SQLiteOpenHelper(context, TasksSQLiteOpenHelper.DATABASE_NAME, null, TasksSQLiteOpenHelper.DATABASE_VERSION) {
+    private class TasksSQLiteOpenHelper(context: Context)
+        : SQLiteOpenHelper(context, TasksSQLiteOpenHelper.DATABASE_NAME, null, TasksSQLiteOpenHelper.DATABASE_VERSION) {
 
         override fun onCreate(db: SQLiteDatabase) {
             db.execSQL(DATABASE_CREATE)
         }
 
         override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-            Log.w(TAG, "Upgrading from version" +
-                    oldVersion + " to " +
-                    newVersion + ", which will destroy all old data")
-            db.execSQL("DROP TABLE IF IT EXISTS " + DATABASE_TASKS_TABLE)
+            Log.w(TAG, "Upgrading from version $oldVersion  to $newVersion , which will destroy all old data")
+            db.execSQL("DROP TABLE IF IT EXISTS $DATABASE_TASKS_TABLE")
             onCreate(db)
         }
 
@@ -118,14 +109,13 @@ class TasksContentProvider : ContentProvider() {
             val DATABASE_TASKS_TABLE = "Tasks"
             private val DATABASE_VERSION = 1
 
-            private val DATABASE_CREATE = "create table " +
-                    DATABASE_TASKS_TABLE + " (" + KEY_ID + " integer primary key autoincrement, " +
-                    KEY_TASK_TABLE_ID + " text not null, " +
-                    KEY_TITLE + " text not null, " +
-                    KEY_Notes + " text, " +
-                    KEY_GOOGLE_ID + " text, " +
-                    KEY_DUE + " integer, " +
-                    KEY_UPDATED + " integer);"
+            private val DATABASE_CREATE = "CREATE TABLE $DATABASE_TASKS_TABLE $KEY_ID INTEGER PRIMARY KEY AUTOIBCREMENT, " +
+                    "$KEY_TASK_TABLE_ID TEXT NOT NULL, " +
+                    "$KEY_TITLE TEXT NOT NULL, " +
+                    "$KEY_Notes TEXT, " +
+                    "$KEY_GOOGLE_ID TEXT, " +
+                    "$KEY_DUE INTEGER, " +
+                    "$KEY_UPDATED INTEGER);"
         }
     }
 
