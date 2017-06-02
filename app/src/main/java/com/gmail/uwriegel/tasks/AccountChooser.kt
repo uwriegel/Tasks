@@ -18,6 +18,10 @@ import pub.devrel.easypermissions.EasyPermissions
  */
 class AccountChooser private constructor() {
 
+    companion object {
+        val instance = AccountChooser()
+    }
+
     fun initialize(context: Context) {
         this.context = context
         if (!isGooglePlayServicesAvailable)
@@ -86,8 +90,4 @@ class AccountChooser private constructor() {
 
     private var context: Context? = null
     private var googleApiClient: GoogleApiClient? = null
-
-    companion object {
-        val instance = AccountChooser()
-    }
 }

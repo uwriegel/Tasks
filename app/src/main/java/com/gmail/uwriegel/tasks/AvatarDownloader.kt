@@ -17,8 +17,6 @@ import java.util.logging.LogRecord
  * Created by urieg on 01.05.2017.
  */
 internal object AvatarDownloader {
-    val FILE = "account.jpg"
-
     fun start(mainActivity: Activity, urlString: String, onFinished: IOnFinished) {
         val file = File(mainActivity.filesDir, FILE)
         if (file.exists())
@@ -28,6 +26,7 @@ internal object AvatarDownloader {
                 e.printStackTrace()
             }
 
+        // TODO: doAsync
         val handler = Handler()
         Thread(Runnable {
             var success: Boolean = false
@@ -60,4 +59,6 @@ internal object AvatarDownloader {
     internal interface IOnFinished {
         fun onFinished(success: Boolean)
     }
+
+    val FILE = "account.jpg"
 }

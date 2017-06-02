@@ -1,29 +1,20 @@
 package com.gmail.uwriegel.tasks
 
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Handler
-
+import com.gmail.uwriegel.tasks.google.Tasklist
+import com.gmail.uwriegel.tasks.google.Tasklists
 import com.gmail.uwriegel.tasks.json.GoogleAccount
-import com.gmail.uwriegel.tasks.json.Tasklist
-import com.gmail.uwriegel.tasks.json.Tasklists
 import com.google.android.gms.auth.api.Auth
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInResult
 import com.google.api.client.extensions.android.http.AndroidHttp
-import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.tasks.Tasks
-import com.google.api.services.tasks.model.TaskList
-import com.google.api.services.tasks.model.TaskLists
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-
-import java.util.ArrayList
-
-import android.app.Activity.RESULT_OK
+import java.util.*
 
 /**
  * Created by urieg on 06.05.2017.
@@ -61,7 +52,7 @@ class Settings private constructor() {
             val gson = builder.create()
             return gson.fromJson<Tasklists>(settings, Tasklists::class.java)
         } else
-            return Tasklists()
+            return Tasklists(taskLists = arrayOf())
     }
 
     fun initialzeGoogleAccountFromPreferences(context: Context): Boolean {
@@ -91,7 +82,8 @@ class Settings private constructor() {
                 // Signed in successfully, show authenticated UI.
                 val googleSignInAccount = result.signInAccount
                 if (googleSignInAccount != null) {
-                    val googleAccount = GoogleAccount(googleSignInAccount.account!!.name, googleSignInAccount.displayName!!, googleSignInAccount.photoUrl)
+                    val googleAccount = GoogleAccount(googleSignInAccount.account!!.name, googleSignInAccount.displayName!!,
+                            googleSignInAccount.photoUrl?.toString() ?: "")
 
                     val settings = Gson().toJson(googleAccount)
                     val sharedPreferences = getPreferences(context)
