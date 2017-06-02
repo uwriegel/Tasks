@@ -99,7 +99,6 @@ class Settings private constructor() {
                 }
             }
         }
-        AccountChooser.instance.onAccountPicked()
     }
 
     private fun updateTaskLists(context: Context, callback: ICallback) {

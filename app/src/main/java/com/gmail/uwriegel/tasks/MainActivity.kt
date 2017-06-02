@@ -124,6 +124,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                         initializeNavigationDrawer()
                     }
                 })
+                accountChooser?.onAccountPicked()
+                accountChooser = null
+
                 if (resultCode == Activity.RESULT_OK) {
                     val navigationView = findViewById(R.id.nav_view) as NavigationView
                     val header = navigationView.getHeaderView(0)
@@ -211,9 +214,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun chooseAccount() {
-        AccountChooser.instance.initialize(this)
-    }
+    private fun chooseAccount() { accountChooser = AccountChooser(this)}
 
     /**
      * Attempts to set the account used with the API credentials. If an account
@@ -324,6 +325,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private var defaultPhotoDrawable: Drawable? = null
+    private var accountChooser: AccountChooser? = null
 
     companion object {
 
