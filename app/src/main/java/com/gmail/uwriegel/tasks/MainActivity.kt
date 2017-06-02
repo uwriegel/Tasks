@@ -6,26 +6,24 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
-import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.File
-import java.util.concurrent.ForkJoinTask
 
 // TODO: Nach UpdateService Einträge anzeigen
 // TODO: Wenn kein due, dann Jahr 3000 verwenden
@@ -36,10 +34,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
+
         setSupportActionBar(toolbar)
 
-        val fab = findViewById(R.id.fab) as FloatingActionButton
         fab.setOnClickListener {
             val swipeRefreshListner = SwipeRefreshLayout.OnRefreshListener {
                 Log.i(TAG, "onRefresh called from SwipeRefreshLayout")
@@ -47,7 +44,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 // The method calls setRefreshing(false) when it's finished.
             }
 
-            val swipeLayout = findViewById(R.id.swipe_container) as SwipeRefreshLayout
             swipeLayout.post {
                 swipeLayout.isRefreshing = true
                 // directly call onRefresh() method
@@ -57,27 +53,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             //                        .setAction("Action", null).show();
         }
 
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        val toggle = object : ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+        val toggle = object : ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             override fun onDrawerOpened(drawerView: View?) {
                 super.onDrawerOpened(drawerView)
             }
         }
-        drawer.addDrawerListener(toggle)
+        drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
         val accountSelected = Settings.instance.initialzeGoogleAccountFromPreferences(this)
         if (!accountSelected)
             chooseAccount()
 
-        val navigationView = findViewById(R.id.nav_view) as NavigationView
-        val header = navigationView.getHeaderView(0)
+        val navigationHeader = navigationView.getHeaderView(0)
         navigationView.setNavigationItemSelectedListener(this)
-        setAccountInNavigationHeader(header)
+        setAccountInNavigationHeader(navigationHeader)
         initializeNavigationDrawer()
-        header.setOnClickListener {
-            val myImage = findViewById(R.id.googleAccountSpinner) as ImageView
-            myImage.setImageResource(R.drawable.dropup)
+        navigationHeader.setOnClickListener {
+            val googleAccountSpinner = navigationHeader.findViewById(R.id.googleAccountSpinner) as ImageView
+            googleAccountSpinner.setImageResource(R.drawable.dropup)
             chooseAccount()
         }
 
@@ -85,17 +79,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             UpdateService.startUpdate(this, Settings.instance.googleAccount?.name!!,
                     Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
         else
-            drawer.openDrawer(navigationView)
+            drawerLayout.openDrawer(navigationView)
 
-        val recyclerView = findViewById(R.id.recycler) as RecyclerView
         recyclerView.setHasFixedSize(true)
-        val llm = LinearLayoutManager(this)
-        llm.orientation = LinearLayoutManager.VERTICAL
-        recyclerView.layoutManager = llm
+        val linearLayoutManager = LinearLayoutManager(this)
+        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+        recyclerView.layoutManager = linearLayoutManager
 
         //val projection = arrayOf(TasksContentProvider.KEY_ID, TasksContentProvider.KEY_TITLE, TasksContentProvider.KEY_Notes, TasksContentProvider.KEY_DUE)
-        val adapter = TaskAdapter(this)
-        recyclerView.adapter = adapter
+        recyclerView.adapter = TaskAdapter(this)
     }
 
     /**
@@ -127,13 +119,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 accountChooser?.onAccountPicked()
                 accountChooser = null
 
-                if (resultCode == Activity.RESULT_OK) {
-                    val navigationView = findViewById(R.id.nav_view) as NavigationView
-                    val header = navigationView.getHeaderView(0)
-                    setAccountInNavigationHeader(header)
-                }
-                val image = findViewById(R.id.googleAccountSpinner) as ImageView
-                image.setImageResource(R.drawable.dropdown)
+                val navigationHeader = navigationView.getHeaderView(0)
+                if (resultCode == Activity.RESULT_OK)
+                    setAccountInNavigationHeader(navigationHeader)
+                val googleAccountSpinner = navigationHeader.findViewById(R.id.googleAccountSpinner) as ImageView
+                googleAccountSpinner.setImageResource(R.drawable.dropdown)
                 title = getString(R.string.app_name)
             }
         // REQUEST_AUTHORIZATION ->
@@ -143,9 +133,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onBackPressed() {
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        if (drawer.isDrawerOpen(GravityCompat.START))
-            drawer.closeDrawer(GravityCompat.START)
+        if (drawerLayout.isDrawerOpen(GravityCompat.START))
+            drawerLayout.closeDrawer(GravityCompat.START)
         else
             super.onBackPressed()
     }
@@ -166,46 +155,38 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
-    fun notifyDataSetChanged() {
-        val recyclerView = findViewById(R.id.recycler) as RecyclerView
-        (recyclerView.adapter as TaskAdapter).notifyDataSetChanged()
-    }
+    fun notifyDataSetChanged() = recyclerView.adapter.notifyDataSetChanged()
 
     private fun setAccountInNavigationHeader(navigationHeader: View) {
         if (Settings.instance.googleAccount != null) {
-            val googleAccountView = navigationHeader.findViewById(R.id.textViewGoogleAccount) as TextView
-            googleAccountView.text = Settings.instance.googleAccount?.name
-
-            val googleDisplay = navigationHeader.findViewById(R.id.textViewGoogleDisplayName) as TextView
-            googleDisplay.text = Settings.instance.googleAccount?.displayName
-
+            val textViewGoogleAccount = navigationHeader.findViewById(R.id.textViewGoogleAccount) as TextView
+            textViewGoogleAccount.text = Settings.instance.googleAccount?.name
+            val textViewGoogleDisplayName = navigationHeader.findViewById(R.id.textViewGoogleDisplayName) as TextView
+            textViewGoogleDisplayName.text = Settings.instance.googleAccount?.displayName
             setPhotoUrl(navigationHeader, false)
         }
     }
 
     private fun clearNavigationDrawer(menu: Menu?) {
         var menuToClear = menu
-        if (menuToClear == null) {
-            val navigationView = findViewById(R.id.nav_view) as NavigationView
+        if (menuToClear == null)
             menuToClear = navigationView.menu
-        }
         menuToClear?.clear()
     }
 
     private fun initializeNavigationDrawer() {
-        val navigationView = findViewById(R.id.nav_view) as NavigationView
         val menu = navigationView.menu
         clearNavigationDrawer(menu)
 
         val tasklists = Settings.instance.getTasklists(this)
         if (tasklists.taskLists.size > 0) {
-            var id = MENU_TASKLISTS_START_ID
-            for (tasklist in tasklists.taskLists) {
-                val mi = menu.add(MENU_GROUP_TASKLISTS, id++, 0, tasklist.name)
+            var menuId = MENU_TASKLISTS_START_ID
+            tasklists.taskLists.forEach { (name, id) ->
+                val mi = menu.add(MENU_GROUP_TASKLISTS, menuId++, 0, name)
                 mi.isCheckable = true
                 mi.setIcon(R.drawable.ic_list)
                 val selectedTasklist = Settings.instance.selectedTasklist
-                if (selectedTasklist != "" && selectedTasklist.compareTo(tasklist.id) == 0) {
+                if (selectedTasklist != "" && selectedTasklist.compareTo(id) == 0) {
                     mi.isChecked = true
                     title = mi.title
                 } else
@@ -227,23 +208,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      * is granted.
      */
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
-    private fun AfterPermissionGranted() {
-        chooseAccount()
-    }
+    private fun AfterPermissionGranted() = chooseAccount()
 
     private fun setPhotoUrl(navigationHeader: View, internal: Boolean) {
-        val myImage = navigationHeader.findViewById(R.id.imageView) as ImageView
+        val imageView = navigationHeader.findViewById(R.id.imageView) as ImageView
         if (defaultPhotoDrawable == null)
-            defaultPhotoDrawable = myImage.drawable
+            defaultPhotoDrawable = imageView.drawable
 
         if (Settings.instance.getIsAvatarDownloaded(this)) {
-            val file = File(filesDir, AvatarDownloader.FILE)
+            val file = File(filesDir, ACCOUNT_IMAGE_FILE)
             if (file.exists()) {
                 val myBitmap = BitmapFactory.decodeFile(file.absolutePath)
-                myImage.drawable
-                myImage.setImageBitmap(myBitmap)
+                imageView.drawable
+                imageView.setImageBitmap(myBitmap)
             } else
-                myImage.setImageDrawable(defaultPhotoDrawable)
+                imageView.setImageDrawable(defaultPhotoDrawable)
         } else if (!internal)
             AvatarDownloader.start(this, Settings.instance.googleAccount!!.photoUrl, object : AvatarDownloader.IOnFinished {
                 override fun onFinished(success: Boolean) {
@@ -251,7 +230,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     if (success)
                         setPhotoUrl(navigationHeader, true)
                     else
-                        myImage.setImageDrawable(defaultPhotoDrawable)
+                        imageView.setImageDrawable(defaultPhotoDrawable)
                 }
             })
     }
@@ -266,10 +245,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        val id = item.itemId
-
-
-        if (id == R.id.action_settings)
+        if (item.itemId == R.id.action_settings)
             return true
 
         return super.onOptionsItemSelected(item)
@@ -277,24 +253,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
-        val id = item.itemId
-        if (id >= MENU_TASKLISTS_START_ID) {
+        if (item.itemId >= MENU_TASKLISTS_START_ID) {
             val tasklists = Settings.instance.getTasklists(this)
             if (tasklists.taskLists.size >  0) {
-                val index = id - MENU_TASKLISTS_START_ID
+                val index = item.itemId - MENU_TASKLISTS_START_ID
                 val taskList = tasklists.taskLists[index]
                 val selectedTasklist = taskList.id
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
                 UpdateService.startUpdate(this, Settings.instance.googleAccount!!.name,
                         Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
-                val recyclerView = findViewById(R.id.recycler) as RecyclerView
                 recyclerView.adapter = TaskAdapter(this)
             }
         }
 
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        drawer.closeDrawer(GravityCompat.START)
+        drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 
@@ -324,8 +297,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Do nothing.
     }
 
-    private var defaultPhotoDrawable: Drawable? = null
     private var accountChooser: AccountChooser? = null
+    // TODO: besser
+    private var defaultPhotoDrawable: Drawable? = null
 
     companion object {
 
@@ -337,5 +311,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         //private val REQUEST_AUTHORIZATION = 1001
         private val MENU_GROUP_TASKLISTS = 200
         private val MENU_TASKLISTS_START_ID = 2000
+        private val ACCOUNT_IMAGE_FILE = "account.jpg"
     }
 }

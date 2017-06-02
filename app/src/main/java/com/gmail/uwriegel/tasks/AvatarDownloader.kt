@@ -18,7 +18,7 @@ import java.util.logging.LogRecord
  */
 internal object AvatarDownloader {
     fun start(mainActivity: Activity, urlString: String, onFinished: IOnFinished) {
-        val file = File(mainActivity.filesDir, FILE)
+        val file = File(mainActivity.filesDir, "account.jpg")
         if (file.exists())
             try {
                 file.delete()
@@ -35,7 +35,7 @@ internal object AvatarDownloader {
                 val httpConnection = url.openConnection() as HttpURLConnection
                 val responseCode = httpConnection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val outputStream = mainActivity.openFileOutput(FILE, Context.MODE_PRIVATE)
+                    val outputStream = mainActivity.openFileOutput("account.jpg", Context.MODE_PRIVATE)
                     val stream = httpConnection.inputStream
                     val bytes = ByteArray(20000)
                     while (true) {
@@ -59,6 +59,4 @@ internal object AvatarDownloader {
     internal interface IOnFinished {
         fun onFinished(success: Boolean)
     }
-
-    val FILE = "account.jpg"
 }
