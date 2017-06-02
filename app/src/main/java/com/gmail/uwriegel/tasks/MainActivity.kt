@@ -211,10 +211,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun AfterPermissionGranted() = chooseAccount()
 
     private fun setPhotoUrl(navigationHeader: View, internal: Boolean) {
+        val noAccount = defaultPhotoDrawable // lazy!!
         val imageView = navigationHeader.findViewById(R.id.imageView) as ImageView
-        if (defaultPhotoDrawable == null)
-            defaultPhotoDrawable = imageView.drawable
-
         if (Settings.instance.getIsAvatarDownloaded(this)) {
             val file = File(filesDir, ACCOUNT_IMAGE_FILE)
             if (file.exists()) {
@@ -222,7 +220,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 imageView.drawable
                 imageView.setImageBitmap(myBitmap)
             } else
-                imageView.setImageDrawable(defaultPhotoDrawable)
+                imageView.setImageDrawable(noAccount)
         } else if (!internal)
             AvatarDownloader.start(this, Settings.instance.googleAccount!!.photoUrl, object : AvatarDownloader.IOnFinished {
                 override fun onFinished(success: Boolean) {
@@ -230,7 +228,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     if (success)
                         setPhotoUrl(navigationHeader, true)
                     else
-                        imageView.setImageDrawable(defaultPhotoDrawable)
+                        imageView.setImageDrawable(noAccount)
                 }
             })
     }
@@ -298,8 +296,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private var accountChooser: AccountChooser? = null
-    // TODO: besser
-    private var defaultPhotoDrawable: Drawable? = null
+    private val defaultPhotoDrawable: Drawable by lazy {
+        val navigationHeader = navigationView.getHeaderView(0)
+        (navigationHeader.findViewById(R.id.imageView) as ImageView).drawable
+    }
 
     companion object {
 
