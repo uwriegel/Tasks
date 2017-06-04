@@ -2,8 +2,6 @@ package com.gmail.uwriegel.tasks
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.support.design.widget.NavigationView
@@ -23,7 +21,6 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
-import java.io.File
 
 // TODO: Nach UpdateService Einträge anzeigen
 // TODO: Wenn kein due, dann Jahr 3000 verwenden
@@ -163,7 +160,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             textViewGoogleAccount.text = Settings.instance.googleAccount?.name
             val textViewGoogleDisplayName = navigationHeader.findViewById(R.id.textViewGoogleDisplayName) as TextView
             textViewGoogleDisplayName.text = Settings.instance.googleAccount?.displayName
-            setPhotoUrl(navigationHeader, false)
+            val imageView = navigationHeader.findViewById(R.id.imageView) as ImageView
+            Avatar(this).set(imageView)
         }
     }
 
@@ -209,29 +207,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      */
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
     private fun AfterPermissionGranted() = chooseAccount()
-
-    private fun setPhotoUrl(navigationHeader: View, internal: Boolean) {
-        val noAccount = defaultPhotoDrawable // lazy!!
-        val imageView = navigationHeader.findViewById(R.id.imageView) as ImageView
-        if (Settings.instance.getIsAvatarDownloaded(this)) {
-            val file = File(filesDir, ACCOUNT_IMAGE_FILE)
-            if (file.exists()) {
-                val myBitmap = BitmapFactory.decodeFile(file.absolutePath)
-                imageView.drawable
-                imageView.setImageBitmap(myBitmap)
-            } else
-                imageView.setImageDrawable(noAccount)
-        } else if (!internal)
-            AvatarDownloader.start(this, Settings.instance.googleAccount!!.photoUrl, object : AvatarDownloader.IOnFinished {
-                override fun onFinished(success: Boolean) {
-                    Settings.instance.setIsAvatarDownloaded(this@MainActivity, true)
-                    if (success)
-                        setPhotoUrl(navigationHeader, true)
-                    else
-                        imageView.setImageDrawable(noAccount)
-                }
-            })
-    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -296,21 +271,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private var accountChooser: AccountChooser? = null
-    private val defaultPhotoDrawable: Drawable by lazy {
-        val navigationHeader = navigationView.getHeaderView(0)
-        (navigationHeader.findViewById(R.id.imageView) as ImageView).drawable
-    }
 
     companion object {
 
         internal val TAG = "Tasks"
 
         internal val REQUEST_ACCOUNT_PICKER = 1000
-        internal val REQUEST_GOOGLE_PLAY_SERVICES = 1002
-        internal const val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
-        //private val REQUEST_AUTHORIZATION = 1001
+        internal val REQUEST_GOOGLE_PLAY_SERVICES = 1001
+        internal const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
         private val MENU_GROUP_TASKLISTS = 200
         private val MENU_TASKLISTS_START_ID = 2000
-        private val ACCOUNT_IMAGE_FILE = "account.jpg"
     }
 }

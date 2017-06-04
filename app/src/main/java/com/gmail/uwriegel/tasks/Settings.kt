@@ -153,6 +153,7 @@ class Settings private constructor() {
          * @return
          */
         val instance = Settings()
+
         private val SETTINGS = "settings"
         private val PREF_ACCOUNT = "googleAccount"
         private val PREF_SELECTED_TASKLIST = "selectedTasklist"
