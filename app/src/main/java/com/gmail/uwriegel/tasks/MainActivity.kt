@@ -110,12 +110,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 chooseAccount()
             REQUEST_ACCOUNT_PICKER -> {
                 val accountPicked = resultCode == Activity.RESULT_OK && data.extras != null
-                if (accountChooser!!.onAccountPicked(this, accountPicked, data)) {
+                if (accountChooser!!.onAccountPicked(this, accountPicked, data))
                     TasklistsUpdater(this).update {
                         Settings.instance.setTasklists(this, it)
                         initializeNavigationDrawer()
                     }
-                }
+
                 accountChooser = null
 
                 val navigationHeader = navigationView.getHeaderView(0)

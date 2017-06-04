@@ -19,6 +19,7 @@ import com.google.api.services.tasks.model.Tasks
 import java.io.IOException
 import android.os.Bundle
 import android.os.ResultReceiver
+import com.gmail.uwriegel.tasks.google.createCredential
 
 
 /**
@@ -49,10 +50,10 @@ class UpdateService : IntentService("UpdateService") {
 
     private fun handleActionUpdate(accountName: String, selectedTasklist: String) {
         try {
-            val tasksCredential = TasksCredential(this, accountName)
+            val tasksCredential = createCredential(this, accountName)
             val transport = AndroidHttp.newCompatibleTransport()
             val jsonFactory = JacksonFactory.getDefaultInstance()
-            val service = com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential.credential)
+            val service = com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential)
                     .setApplicationName("Aufgaben")
                     .build()
             val result = service.tasks().list(selectedTasklist)
