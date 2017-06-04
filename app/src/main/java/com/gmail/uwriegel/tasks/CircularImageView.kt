@@ -3,9 +3,10 @@ package com.gmail.uwriegel.tasks
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
+import android.support.v7.widget.AppCompatImageView
 import android.util.AttributeSet
 
-class CircularImageView : android.support.v7.widget.AppCompatImageView {
+class CircularImageView : AppCompatImageView {
 
     constructor(context: Context) : super(context)
 

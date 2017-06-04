@@ -16,6 +16,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import com.gmail.uwriegel.tasks.google.TasklistsUpdater
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -58,8 +59,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        val accountSelected = Settings.instance.initialzeGoogleAccountFromPreferences(this)
-        if (!accountSelected)
+        Settings.instance.initialzeGoogleAccountFromPreferences(this)
+        if (Settings.instance.googleAccount.name == "")
             chooseAccount()
 
         val navigationHeader = navigationView.getHeaderView(0)
@@ -72,8 +73,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             chooseAccount()
         }
 
-        if (accountSelected && Settings.instance.selectedTasklist != "")
-            UpdateService.startUpdate(this, Settings.instance.googleAccount?.name!!,
+        if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "")
+            UpdateService.startUpdate(this, Settings.instance.googleAccount.name,
                     Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
         else
             drawerLayout.openDrawer(navigationView)
@@ -104,16 +105,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_GOOGLE_PLAY_SERVICES -> if (resultCode != Activity.RESULT_OK)
-                Log.w(TAG, "This app requires Google Play Services. Please install Google Play Services on your device and relaunch this app.")
+                Log.w(TAG, getString(R.string.google_play_services_required))
             else
                 chooseAccount()
             REQUEST_ACCOUNT_PICKER -> {
-                Settings.instance.onRequestAccontPicker(this, resultCode, data, object : Settings.ICallback {
-                    override fun onTasklistsUpdated() {
+                val accountPicked = resultCode == Activity.RESULT_OK && data.extras != null
+                if (accountChooser!!.onAccountPicked(this, accountPicked, data)) {
+                    TasklistsUpdater(this).update {
+                        Settings.instance.setTasklists(this, it)
                         initializeNavigationDrawer()
                     }
-                })
-                accountChooser?.onAccountPicked()
+                }
                 accountChooser = null
 
                 val navigationHeader = navigationView.getHeaderView(0)
@@ -155,11 +157,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     fun notifyDataSetChanged() = recyclerView.adapter.notifyDataSetChanged()
 
     private fun setAccountInNavigationHeader(navigationHeader: View) {
-        if (Settings.instance.googleAccount != null) {
+        if (Settings.instance.googleAccount.name != "") {
             val textViewGoogleAccount = navigationHeader.findViewById(R.id.textViewGoogleAccount) as TextView
-            textViewGoogleAccount.text = Settings.instance.googleAccount?.name
+            textViewGoogleAccount.text = Settings.instance.googleAccount.name
             val textViewGoogleDisplayName = navigationHeader.findViewById(R.id.textViewGoogleDisplayName) as TextView
-            textViewGoogleDisplayName.text = Settings.instance.googleAccount?.displayName
+            textViewGoogleDisplayName.text = Settings.instance.googleAccount.displayName
             val imageView = navigationHeader.findViewById(R.id.imageView) as ImageView
             Avatar(this).set(imageView)
         }
@@ -177,9 +179,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         clearNavigationDrawer(menu)
 
         val tasklists = Settings.instance.getTasklists(this)
-        if (tasklists.taskLists.size > 0) {
+        if (tasklists.size > 0) {
             var menuId = MENU_TASKLISTS_START_ID
-            tasklists.taskLists.forEach { (name, id) ->
+            tasklists.forEach { (name, id) ->
                 val mi = menu.add(MENU_GROUP_TASKLISTS, menuId++, 0, name)
                 mi.isCheckable = true
                 mi.setIcon(R.drawable.ic_list)
@@ -228,13 +230,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Handle navigation view item clicks here.
         if (item.itemId >= MENU_TASKLISTS_START_ID) {
             val tasklists = Settings.instance.getTasklists(this)
-            if (tasklists.taskLists.size >  0) {
+            if (tasklists.size >  0) {
                 val index = item.itemId - MENU_TASKLISTS_START_ID
-                val taskList = tasklists.taskLists[index]
+                val taskList = tasklists[index]
                 val selectedTasklist = taskList.id
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
-                UpdateService.startUpdate(this, Settings.instance.googleAccount!!.name,
+                UpdateService.startUpdate(this, Settings.instance.googleAccount.name,
                         Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
                 recyclerView.adapter = TaskAdapter(this)
             }
@@ -276,9 +278,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         internal val TAG = "Tasks"
 
-        internal val REQUEST_ACCOUNT_PICKER = 1000
-        internal val REQUEST_GOOGLE_PLAY_SERVICES = 1001
-        internal const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
+        val REQUEST_ACCOUNT_PICKER = 1000
+        val REQUEST_GOOGLE_PLAY_SERVICES = 1001
+        const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
         private val MENU_GROUP_TASKLISTS = 200
         private val MENU_TASKLISTS_START_ID = 2000
     }

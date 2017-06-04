@@ -1,6 +1,5 @@
 package com.gmail.uwriegel.tasks.utils
 
-import android.content.Context
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL

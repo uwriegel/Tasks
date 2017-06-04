@@ -1,14 +1,19 @@
 package com.gmail.uwriegel.tasks
 
 import android.Manifest
+import android.app.Activity.RESULT_OK
+import android.content.Context
+import android.content.Intent
 import android.support.v4.app.FragmentActivity
 import android.util.Log
 import com.gmail.uwriegel.tasks.MainActivity.Companion.TAG
+import com.gmail.uwriegel.tasks.json.GoogleAccount
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.gson.Gson
 import pub.devrel.easypermissions.EasyPermissions
 
 /**
@@ -38,10 +43,28 @@ class AccountChooser {
                     MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS, Manifest.permission.GET_ACCOUNTS)
     }
 
-    fun onAccountPicked() {
+    fun onAccountPicked(context: Context, accountPicked: Boolean, data: Intent): Boolean {
+        var isSuccess = false
+        if (accountPicked) {
+            val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
+            if (result.isSuccess) {
+                // Signed in successfully, show authenticated UI.
+                val googleSignInAccount = result.signInAccount
+                if (googleSignInAccount != null) {
+                    val googleAccount = GoogleAccount(googleSignInAccount.account!!.name,
+                            googleSignInAccount.displayName!!, googleSignInAccount.photoUrl?.toString() ?: "")
+
+                    Settings.instance.setPickedAccount(context, googleAccount)
+                    isSuccess = true
+                }
+            }
+        }
+
         Auth.GoogleSignInApi.signOut(googleApiClient)
         googleApiClient?.stopAutoManage(mainActivity)
         googleApiClient = null
+
+        return isSuccess
     }
 
     /**

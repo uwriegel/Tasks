@@ -2,7 +2,6 @@ package com.gmail.uwriegel.tasks
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import com.gmail.uwriegel.tasks.utils.downloadFile
 import org.jetbrains.anko.doAsync
@@ -36,10 +35,10 @@ class Avatar(val context: Context) {
         else {
             delete(file)
             doAsync {
-                if (Settings.instance.googleAccount!!.photoUrl != "") {
+                if (Settings.instance.googleAccount.photoUrl != "") {
                     val outputStream = context.openFileOutput(ACCOUNT_IMAGE_FILE, Context.MODE_PRIVATE)
                     try {
-                        downloadFile(Settings.instance.googleAccount!!.photoUrl, outputStream)
+                        downloadFile(Settings.instance.googleAccount.photoUrl, outputStream)
                         outputStream?.close()
                         uiThread {
                             val myBitmap = BitmapFactory.decodeFile(file.absolutePath)
