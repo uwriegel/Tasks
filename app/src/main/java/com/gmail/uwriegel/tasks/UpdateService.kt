@@ -1,25 +1,15 @@
 package com.gmail.uwriegel.tasks
 
 import android.app.IntentService
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
-
-import com.google.api.client.extensions.android.http.AndroidHttp
-import com.google.api.client.http.HttpRequest
-import com.google.api.client.http.HttpRequestInitializer
-import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.tasks.model.Task
-import com.google.api.services.tasks.model.Tasks
-
-import java.io.IOException
 import android.os.Bundle
 import android.os.ResultReceiver
 import com.gmail.uwriegel.tasks.google.createCredential
+import com.google.api.client.extensions.android.http.AndroidHttp
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.tasks.model.Task
 
 
 /**
