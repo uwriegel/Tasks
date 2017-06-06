@@ -1,6 +1,7 @@
 package com.gmail.uwriegel.tasks.db
 
 import android.content.ContentProvider
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -32,8 +33,16 @@ class TasksContentProvider: ContentProvider() {
     }
 
     override fun insert(uri: Uri?, values: ContentValues?): Uri {
-        throw SQLException("Failed to insert row into $uri")
-    }
+        // Insert the new row. The call to database.insert will return the row number if it is successful.
+        val rowID = db.writableDatabase.insert(TasksTable.NAME, "task", values)
+        // Return a URI to the newly inserted row on success.
+        if (rowID > 0) {
+            val resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID)
+            context?.contentResolver?.notifyChange(resultUri, null)
+            return resultUri
+        }
+
+        throw SQLException("Failed to insert row into $uri")    }
 
     override fun update(uri: Uri?, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
         return 0

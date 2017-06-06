@@ -48,7 +48,7 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
         holder.viewNotes.text = cursor.getString(2)
         holder.viewNotes.visibility = if (holder.viewNotes.text != "") VISIBLE else GONE
         //noinspection deprecation
-        holder.viewDue.text = Html.fromHtml("12.04<br>2017")
+        holder.viewDue.text = Html.fromHtml("12.04<br>17")
     }
 
     override fun getItemCount(): Int {
