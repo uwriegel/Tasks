@@ -23,6 +23,9 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
+import android.util.TypedValue
+
+
 
 // TODO: Nach UpdateService Einträge anzeigen
 // TODO: Wenn kein due, dann Jahr 3000 verwenden
@@ -57,8 +60,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 super.onDrawerOpened(drawerView)
             }
         }
+
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+
+        swipeLayout.isEnabled = false
 
         Settings.instance.initialzeGoogleAccountFromPreferences(this)
         if (Settings.instance.googleAccount.name == "")

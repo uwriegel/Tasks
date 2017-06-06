@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.opengl.Visibility
 import android.support.v7.widget.RecyclerView
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -46,6 +47,8 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
         holder.viewTitle.text = cursor.getString(1)
         holder.viewNotes.text = cursor.getString(2)
         holder.viewNotes.visibility = if (holder.viewNotes.text != "") VISIBLE else GONE
+        //noinspection deprecation
+        holder.viewDue.text = Html.fromHtml("12.04<br>2017")
     }
 
     override fun getItemCount(): Int {
