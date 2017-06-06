@@ -1,15 +1,16 @@
 package com.gmail.uwriegel.tasks
 
-import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
-import android.database.SQLException
-import android.os.Handler
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.gmail.uwriegel.tasks.db.TasksContentProvider
+import com.gmail.uwriegel.tasks.db.TasksTable
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 /**
  * Created by urieg on 17.05.2017.
@@ -18,17 +19,13 @@ import android.widget.TextView
 class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     init {
-        val projection = arrayOf(TasksContentProvider.KEY_ID, TasksContentProvider.KEY_TITLE, TasksContentProvider.KEY_Notes, TasksContentProvider.KEY_DUE)
+        val projection = arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE)
 
-        val handler = Handler()
-        Thread(Runnable {
-            val cr = context.contentResolver
+        doAsync {
             val taskList = Settings.instance.selectedTasklist
-            cursor = cr.query(TasksContentProvider.CONTENT_URI, projection, "${TasksContentProvider.KEY_TASK_TABLE_ID} = '$taskList'", null, null)
-            handler.post({
-                notifyDataSetChanged()
-            })
-        }).start()
+            cursor = context.contentResolver.query(TasksContentProvider.CONTENT_URI, projection, "${TasksTable.KEY_TASK_TABLE_ID} = '$taskList'", null, null)
+            uiThread { notifyDataSetChanged() }
+        }
     }
 
     fun clear() {

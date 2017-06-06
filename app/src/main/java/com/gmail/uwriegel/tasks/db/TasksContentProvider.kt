@@ -1,0 +1,79 @@
+package com.gmail.uwriegel.tasks.db
+
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.Context
+import android.database.Cursor
+import android.database.SQLException
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteQueryBuilder
+import android.net.Uri
+import android.text.TextUtils
+
+/**
+ * Created by urieg on 05.06.2017.
+ */
+class TasksContentProvider: ContentProvider() {
+
+    override fun onCreate(): Boolean {
+        db = TasksSQLiteOpenHelper(context)
+        return true
+    }
+
+    override fun query(uri: Uri?, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor {
+        val qb = SQLiteQueryBuilder()
+        qb.tables = TasksTable.NAME
+
+        val orderBy = if (TextUtils.isEmpty(sortOrder)) TasksTable.KEY_DUE else sortOrder
+        val cursor = qb.query(db.readableDatabase, projection, selection, selectionArgs, null, null, orderBy)
+        cursor.setNotificationUri(context.contentResolver, uri)
+        return cursor
+    }
+
+    override fun insert(uri: Uri?, values: ContentValues?): Uri {
+        throw SQLException("Failed to insert row into $uri")
+    }
+
+    override fun update(uri: Uri?, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
+        return 0
+    }
+
+    override fun delete(uri: Uri?, selection: String?, selectionArgs: Array<out String>?): Int {
+        return 0
+    }
+
+    override fun getType(uri: Uri?): String {
+        return ""
+    }
+
+    private class TasksSQLiteOpenHelper(context: Context)
+        : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
+
+        override fun onCreate(db: SQLiteDatabase) {
+            db.execSQL("CREATE TABLE ${TasksTable.NAME} (${TasksTable.KEY_ID} INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "${TasksTable.KEY_TASK_TABLE_ID} TEXT NOT NULL, " +
+                    "${TasksTable.KEY_TITLE} TEXT NOT NULL, " +
+                    "${TasksTable.KEY_NOTES} TEXT, " +
+                    "${TasksTable.KEY_GOOGLE_ID} TEXT UNIQUE, " +
+                    "${TasksTable.KEY_DUE} INTEGER, " +
+                    "${TasksTable.KEY_UPDATED} INTEGER);")
+        }
+
+        override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+            db.execSQL("DROP TABLE IF IT EXISTS ${TasksTable.NAME}")
+            onCreate(db)
+        }
+
+        companion object {
+            val DB_NAME = "tasks.db"
+            val DB_VERSION = 1
+        }
+    }
+
+    companion object {
+        val CONTENT_URI: Uri = Uri.parse("content://com.gmail.uwriegel.tasks/tasks")
+    }
+
+    private lateinit var db: TasksSQLiteOpenHelper
+}

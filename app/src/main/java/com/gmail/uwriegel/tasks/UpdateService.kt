@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.ResultReceiver
+import com.gmail.uwriegel.tasks.db.TasksContentProvider
+import com.gmail.uwriegel.tasks.db.TasksTable
 import com.gmail.uwriegel.tasks.google.createCredential
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.jackson2.JacksonFactory
@@ -70,17 +72,17 @@ class UpdateService : IntentService("UpdateService") {
 
         // Construct a where clause to make sure we don’t already have this
         // earthquake in the provider.
-        val where = "${TasksContentProvider.KEY_GOOGLE_ID} = '${task.id}'"
+        val where = "${TasksTable.KEY_GOOGLE_ID} = '${task.id}'"
         // If the earthquake is new, insert it into the provider.
         val query = contentResolver.query(TasksContentProvider.CONTENT_URI, null, where, null, null)
         if (query?.count == 0) {
             val values = ContentValues()
-            values.put(TasksContentProvider.KEY_TASK_TABLE_ID, taskTableId)
-            values.put(TasksContentProvider.KEY_GOOGLE_ID, task.id)
-            values.put(TasksContentProvider.KEY_TITLE, task.title)
-            values.put(TasksContentProvider.KEY_Notes, task.notes)
-            values.put(TasksContentProvider.KEY_DUE, task.due?.value)
-            values.put(TasksContentProvider.KEY_UPDATED, task.updated.value)
+            values.put(TasksTable.KEY_TASK_TABLE_ID, taskTableId)
+            values.put(TasksTable.KEY_GOOGLE_ID, task.id)
+            values.put(TasksTable.KEY_TITLE, task.title)
+            values.put(TasksTable.KEY_NOTES, task.notes)
+            values.put(TasksTable.KEY_DUE, task.due?.value)
+            values.put(TasksTable.KEY_UPDATED, task.updated.value)
             contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
         }
         query.close()
