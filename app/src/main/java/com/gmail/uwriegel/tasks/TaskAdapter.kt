@@ -2,9 +2,12 @@ package com.gmail.uwriegel.tasks
 
 import android.content.Context
 import android.database.Cursor
+import android.opengl.Visibility
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
@@ -42,6 +45,7 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
         cursor.moveToPosition(position)
         holder.viewTitle.text = cursor.getString(1)
         holder.viewNotes.text = cursor.getString(2)
+        holder.viewNotes.visibility = if (holder.viewNotes.text != "") VISIBLE else GONE
     }
 
     override fun getItemCount(): Int {

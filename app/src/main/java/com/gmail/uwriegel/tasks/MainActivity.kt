@@ -9,6 +9,7 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
@@ -79,9 +80,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         else
             drawerLayout.openDrawer(navigationView)
 
-        recyclerView.setHasFixedSize(true)
+        recyclerView.setHasFixedSize(false)
         val linearLayoutManager = LinearLayoutManager(this)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+        val dividerItemDecoration = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
+        recyclerView.addItemDecoration(dividerItemDecoration)
         recyclerView.layoutManager = linearLayoutManager
 
         //val projection = arrayOf(TasksContentProvider.KEY_ID, TasksContentProvider.KEY_TITLE, TasksContentProvider.KEY_Notes, TasksContentProvider.KEY_DUE)
