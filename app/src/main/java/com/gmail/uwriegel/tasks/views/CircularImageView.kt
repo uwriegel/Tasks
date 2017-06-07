@@ -1,4 +1,4 @@
-package com.gmail.uwriegel.tasks
+package com.gmail.uwriegel.tasks.views
 
 import android.content.Context
 import android.graphics.*

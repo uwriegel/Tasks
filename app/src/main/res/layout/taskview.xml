@@ -58,7 +58,7 @@
             android:orientation="vertical"
             app:layout_constraintGuide_end="70dp"/>
 
-        <com.gmail.uwriegel.tasks.TaskIcon
+        <com.gmail.uwriegel.tasks.views.TaskIcon
             android:id="@+id/taskIcon"
             android:layout_width="40dp"
             android:layout_height="40dp"
