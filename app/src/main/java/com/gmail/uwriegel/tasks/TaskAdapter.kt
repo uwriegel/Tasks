@@ -15,6 +15,8 @@ import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Created by urieg on 17.05.2017.
@@ -47,8 +49,12 @@ class TaskAdapter(context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewH
         holder.viewTitle.text = cursor.getString(1)
         holder.viewNotes.text = cursor.getString(2)
         holder.viewNotes.visibility = if (holder.viewNotes.text != "") VISIBLE else GONE
+
+        val date = Date(cursor.getLong(3))
         //noinspection deprecation
-        holder.viewDue.text = Html.fromHtml("12.04<br>17")
+        val simpleDateFormat = SimpleDateFormat("dd.MM.")
+        val simpleDateFormat2 = SimpleDateFormat("EE")
+        holder.viewDue.text = Html.fromHtml("${simpleDateFormat2.format(date)}<br>${simpleDateFormat.format(date)}")
     }
 
     override fun getItemCount(): Int {

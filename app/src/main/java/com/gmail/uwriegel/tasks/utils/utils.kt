@@ -3,6 +3,7 @@ package com.gmail.uwriegel.tasks.utils
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
 /**
  * Created by urieg on 04.06.2017.
@@ -22,3 +23,4 @@ fun downloadFile(urlString: String, outputStream: OutputStream) {
         }
     }
 }
+
