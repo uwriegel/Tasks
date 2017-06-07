@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
+import android.os.Handler
 import android.text.TextUtils
 
 /**
@@ -42,7 +43,7 @@ class TasksContentProvider: ContentProvider() {
         // Return a URI to the newly inserted row on success.
         if (rowID > 0) {
             val resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID)
-            context?.contentResolver?.notifyChange(resultUri, null)
+            handler.post({ onInsert?.invoke(rowID) })
             return resultUri
         }
 
@@ -56,7 +57,7 @@ class TasksContentProvider: ContentProvider() {
     override fun delete(uri: Uri?, selection: String?, selectionArgs: Array<out String>?): Int {
         val result = db.writableDatabase.delete(TasksTable.NAME, selection, selectionArgs)
         if (selectionArgs != null)
-            onDelete?.invoke(selectionArgs[0].toLong())
+            handler.post({ onDelete?.invoke(selectionArgs[0].toLong()) })
         return result
     }
 
@@ -64,8 +65,16 @@ class TasksContentProvider: ContentProvider() {
         return ""
     }
 
+    fun registerOnInsert(onInsert: (Long)->Unit) {
+        this.onInsert = onInsert
+    }
+
     fun registerOnDelete(onDelete: (Long)->Unit) {
         this.onDelete = onDelete
+    }
+
+    fun unregisterOnInsert() {
+        this.onInsert = null
     }
 
     fun unregisterOnDelete() {
@@ -102,5 +111,7 @@ class TasksContentProvider: ContentProvider() {
     }
 
     private var onDelete: ((Long)->Unit)? = null
+    private var onInsert: ((Long)->Unit)? = null
+    private val handler: Handler = Handler()
     private lateinit var db: TasksSQLiteOpenHelper
 }

@@ -42,6 +42,30 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         setSupportActionBar(toolbar)
 
+        recyclerView.setHasFixedSize(false)
+        val linearLayoutManager = LinearLayoutManager(this)
+        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+        val dividerItemDecoration = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
+        recyclerView.addItemDecoration(dividerItemDecoration)
+        recyclerView.layoutManager = linearLayoutManager
+        recyclerView.adapter = TaskAdapter(this)
+
+        Log.d("Affe", "Aktivität: ${android.os.Process.myTid()}")
+
+        val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
+                val halter = viewHolder as TaskAdapter.TaskViewHolder
+                contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_ID} = ?", arrayOf("${halter.id}"))
+            }
+
+            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
+                return false
+            }
+        }
+        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+
         fab.setOnClickListener {
             val swipeRefreshListner = SwipeRefreshLayout.OnRefreshListener {
                 Log.i(TAG, "onRefresh called from SwipeRefreshLayout")
@@ -84,34 +108,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "")
-            UpdateService.startUpdate(this, Settings.instance.googleAccount.name,
-                    Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
+            UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
         else
             drawerLayout.openDrawer(navigationView)
-
-        recyclerView.setHasFixedSize(false)
-        val linearLayoutManager = LinearLayoutManager(this)
-        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-        val dividerItemDecoration = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
-        recyclerView.addItemDecoration(dividerItemDecoration)
-        recyclerView.layoutManager = linearLayoutManager
-
-        //val projection = arrayOf(TasksContentProvider.KEY_ID, TasksContentProvider.KEY_TITLE, TasksContentProvider.KEY_Notes, TasksContentProvider.KEY_DUE)
-        recyclerView.adapter = TaskAdapter(this)
-
-        val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
-                val halter = viewHolder as TaskAdapter.TaskViewHolder
-                contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_ID} = ?", arrayOf("${halter.id}"))
-            }
-
-            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
-                return false
-            }
-        }
-        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
     }
 
     /**
@@ -284,9 +283,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 val selectedTasklist = taskList.id
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
-                UpdateService.startUpdate(this, Settings.instance.googleAccount.name,
-                        Settings.instance.selectedTasklist, UpdateSuccessReceiver(this, Handler()))
-                recyclerView.adapter = TaskAdapter(this)
+                (recyclerView.adapter as TaskAdapter).refresh()
+                UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }
         }
 

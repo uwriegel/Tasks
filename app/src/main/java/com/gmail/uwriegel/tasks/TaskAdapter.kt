@@ -1,14 +1,11 @@
 package com.gmail.uwriegel.tasks
 
-import android.content.ContentUris
 import android.content.Context
-import android.database.ContentObserver
 import android.database.Cursor
-import android.net.Uri
-import android.opengl.Visibility
 import android.os.Handler
 import android.support.v7.widget.RecyclerView
 import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -17,7 +14,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
-import kotlinx.android.synthetic.main.content_main.*
+import com.gmail.uwriegel.tasks.db.getPosition
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.text.SimpleDateFormat
@@ -30,19 +27,20 @@ import java.util.*
 class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     init {
-        query({notifyDataSetChanged()})
+        refresh()
     }
 
-    fun clear() {
-        cursor = DefaultCursor()
-        notifyDataSetChanged()
+    fun refresh() {
+        query { notifyDataSetChanged() }
     }
 
     fun onResume() {
+        TasksContentProvider.instance.registerOnInsert{ onInsert(it)}
         TasksContentProvider.instance.registerOnDelete{ onDelete(it)}
     }
 
     fun onPause() {
+        TasksContentProvider.instance.unregisterOnInsert()
         TasksContentProvider.instance.unregisterOnDelete()
     }
 
@@ -52,12 +50,17 @@ class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskV
     }
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-        cursor.moveToPosition(position)
-        holder.viewTitle.text = cursor.getString(1)
-        holder.viewNotes.text = cursor.getString(2)
-        holder.viewNotes.visibility = if (holder.viewNotes.text != "") VISIBLE else GONE
-        holder.id = cursor.getInt(0)
-
+        try {
+            cursor.moveToPosition(position)
+            holder.viewTitle.text = cursor.getString(1)
+            holder.viewNotes.text = cursor.getString(2)
+            holder.viewNotes.visibility = if (holder.viewNotes.text != "") VISIBLE else GONE
+            holder.id = cursor.getInt(0)
+        }
+        catch (e: Exception)
+        {
+            e.printStackTrace()
+        }
         val date = Date(cursor.getLong(3))
         //noinspection deprecation
         val simpleDateFormat = SimpleDateFormat("dd.MM.")
@@ -72,24 +75,34 @@ class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskV
     private fun query(onFinished: ()->Unit) {
         doAsync {
             val taskList = Settings.instance.selectedTasklist
-            cursor = context.contentResolver.query(TasksContentProvider.CONTENT_URI, projection, "${TasksTable.KEY_TASK_TABLE_ID} = '$taskList'", null, null)
-            uiThread { onFinished() }
+            val newCursor = context.contentResolver.query(TasksContentProvider.CONTENT_URI,
+                    arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE),
+                    "${TasksTable.KEY_TASK_TABLE_ID} = '$taskList'", null, null)
+            uiThread {
+                cursor.close()
+                cursor = newCursor
+                onFinished()
+            }
         }
     }
 
     private fun onDelete(id: Long) {
-        cursor.moveToFirst()
-        while (true) {
-            if (cursor.getLong(0) == id)
-                break;
-            if (!cursor.moveToNext())
-                return
-        }
-        val index = cursor.position
+        val index = cursor.getPosition(id)
         query({
-            notifyItemRemoved(index)
+            if (index != -1)
+                notifyItemRemoved(index)
         })
+    }
 
+    private fun onInsert(id: Long) {
+
+        val preIndex = cursor.getPosition(id)
+        query({
+            if (preIndex == -1) {
+                val index = cursor.getPosition(id)
+                notifyItemInserted(index)
+            }
+        })
     }
 
     class TaskViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -100,5 +113,4 @@ class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskV
     }
 
     internal var cursor: Cursor = DefaultCursor()
-    private val projection = arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE)
 }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.ResultReceiver
+import android.util.Log
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import com.gmail.uwriegel.tasks.google.createCredential
@@ -31,10 +32,6 @@ class UpdateService : IntentService("UpdateService") {
                     val accountName = intent.getStringExtra(EXTRA_ACCOUNT_NAME)
                     val selectedTasklist = intent.getStringExtra(EXTRA_SELECTED_TASKLIST)
                     handleActionUpdate(accountName, selectedTasklist)
-
-                    val resultBundle = Bundle()
-                    val resultReceiver = intent.getParcelableExtra<ResultReceiver>(EXTRA_RESULT_RECEIVER)
-                    resultReceiver.send(0, resultBundle)
                 }
             }
         }
@@ -83,6 +80,7 @@ class UpdateService : IntentService("UpdateService") {
             values.put(TasksTable.KEY_NOTES, task.notes)
             values.put(TasksTable.KEY_DUE, task.due?.value)
             values.put(TasksTable.KEY_UPDATED, task.updated.value)
+            Log.d("Affe", "Eintrag: ${task.title}")
             contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
         }
         query.close()
@@ -96,18 +94,16 @@ class UpdateService : IntentService("UpdateService") {
 
          * @see IntentService
          */
-        fun startUpdate(context: Context, accountName: String, selectedTasklist: String, resultReceiver: UpdateSuccessReceiver) {
+        fun startUpdate(context: Context, accountName: String, selectedTasklist: String) {
             val intent = Intent(context, UpdateService::class.java)
             intent.action = ACTION_UPDATE
             intent.putExtra(EXTRA_ACCOUNT_NAME, accountName)
             intent.putExtra(EXTRA_SELECTED_TASKLIST, selectedTasklist)
-            intent.putExtra(EXTRA_RESULT_RECEIVER, resultReceiver);
             context.startService(intent)
         }
 
         private val ACTION_UPDATE = "com.gmail.uwriegel.tasks.action.update"
         private val EXTRA_ACCOUNT_NAME = "com.gmail.uwriegel.tasks.extra.ACCOUNT_NAME"
         private val EXTRA_SELECTED_TASKLIST = "com.gmail.uwriegel.tasks.extra.SELECTED_TASKLIST"
-        private val EXTRA_RESULT_RECEIVER = "com.gmail.uwriegel.tasks.extra.RESULT_RECEIVER"
     }
 }
