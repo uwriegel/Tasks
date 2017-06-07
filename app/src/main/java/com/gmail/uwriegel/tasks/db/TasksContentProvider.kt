@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
 import android.os.Handler
 import android.text.TextUtils
+import org.jetbrains.anko.db.select
 
 /**
  * Created by urieg on 05.06.2017.
@@ -43,7 +44,7 @@ class TasksContentProvider: ContentProvider() {
         // Return a URI to the newly inserted row on success.
         if (rowID > 0) {
             val resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID)
-            handler.post({ onInsert?.invoke(rowID) })
+            onInsert?.invoke(rowID)
             return resultUri
         }
 
@@ -56,8 +57,8 @@ class TasksContentProvider: ContentProvider() {
 
     override fun delete(uri: Uri?, selection: String?, selectionArgs: Array<out String>?): Int {
         val result = db.writableDatabase.delete(TasksTable.NAME, selection, selectionArgs)
-        if (selectionArgs != null)
-            handler.post({ onDelete?.invoke(selectionArgs[0].toLong()) })
+        if (selectionArgs != null && result == 1)
+            onDelete?.invoke(selectionArgs[0].toLong())
         return result
     }
 
@@ -112,6 +113,5 @@ class TasksContentProvider: ContentProvider() {
 
     private var onDelete: ((Long)->Unit)? = null
     private var onInsert: ((Long)->Unit)? = null
-    private val handler: Handler = Handler()
     private lateinit var db: TasksSQLiteOpenHelper
 }

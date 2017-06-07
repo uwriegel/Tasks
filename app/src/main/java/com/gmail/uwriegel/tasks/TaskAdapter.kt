@@ -74,10 +74,7 @@ class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskV
 
     private fun query(onFinished: ()->Unit) {
         doAsync {
-            val taskList = Settings.instance.selectedTasklist
-            val newCursor = context.contentResolver.query(TasksContentProvider.CONTENT_URI,
-                    arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE),
-                    "${TasksTable.KEY_TASK_TABLE_ID} = '$taskList'", null, null)
+            val newCursor = query()
             uiThread {
                 cursor.close()
                 cursor = newCursor
@@ -88,21 +85,30 @@ class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskV
 
     private fun onDelete(id: Long) {
         val index = cursor.getPosition(id)
-        query({
-            if (index != -1)
+        if (index != -1) {
+            val newCursor = query()
+            handler.post({
+                cursor.close()
+                cursor = newCursor
                 notifyItemRemoved(index)
-        })
+            })
+        }
     }
 
     private fun onInsert(id: Long) {
-
-        val preIndex = cursor.getPosition(id)
-        query({
-            if (preIndex == -1) {
-                val index = cursor.getPosition(id)
-                notifyItemInserted(index)
-            }
+        val newCursor = query()
+        handler.post({
+            cursor.close()
+            cursor = newCursor
+            val index = cursor.getPosition(id)
+            notifyItemInserted(index)
         })
+    }
+
+    private fun query(): Cursor {
+        return context.contentResolver.query(TasksContentProvider.CONTENT_URI,
+                arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE),
+                "${TasksTable.KEY_TASK_TABLE_ID} = '${Settings.instance.selectedTasklist}'", null, null)
     }
 
     class TaskViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -112,5 +118,6 @@ class TaskAdapter(val context: Context) : RecyclerView.Adapter<TaskAdapter.TaskV
         var id: Int = 0
     }
 
+    private var handler: Handler = Handler()
     internal var cursor: Cursor = DefaultCursor()
 }
