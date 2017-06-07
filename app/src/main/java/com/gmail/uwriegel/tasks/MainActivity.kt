@@ -11,6 +11,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -24,7 +25,9 @@ import kotlinx.android.synthetic.main.content_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import android.util.TypedValue
-
+import android.support.v7.widget.RecyclerView
+import com.gmail.uwriegel.tasks.db.TasksContentProvider
+import com.gmail.uwriegel.tasks.db.TasksTable
 
 
 // TODO: Nach UpdateService Einträge anzeigen
@@ -95,6 +98,42 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         //val projection = arrayOf(TasksContentProvider.KEY_ID, TasksContentProvider.KEY_TITLE, TasksContentProvider.KEY_Notes, TasksContentProvider.KEY_DUE)
         recyclerView.adapter = TaskAdapter(this)
+
+        val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
+                val halter = viewHolder as TaskAdapter.TaskViewHolder
+                contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_ID} = ?", arrayOf("${halter.id}"))
+            }
+
+            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
+                return false
+            }
+        }
+        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+    }
+
+    /**
+     * Dispatch onPause() to fragments.
+     */
+    override fun onPause() {
+        super.onPause()
+        (recyclerView.adapter as TaskAdapter).onPause()
+    }
+
+    /**
+     * Dispatch onResume() to fragments.  Note that for better inter-operation
+     * with older versions of the platform, at the point of this call the
+     * fragments attached to the activity are *not* resumed.  This means
+     * that in some cases the previous state may still be saved, not allowing
+     * fragment transactions that modify the state.  To correctly interact
+     * with fragments in their proper state, you should instead override
+     * [.onResumeFragments].
+     */
+    override fun onResume() {
+        super.onResume()
+        (recyclerView.adapter as TaskAdapter).onResume()
     }
 
     /**

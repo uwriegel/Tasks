@@ -17,6 +17,10 @@ import android.text.TextUtils
  */
 class TasksContentProvider: ContentProvider() {
 
+    init {
+        instance = this
+    }
+
     override fun onCreate(): Boolean {
         db = TasksSQLiteOpenHelper(context)
         return true
@@ -42,18 +46,30 @@ class TasksContentProvider: ContentProvider() {
             return resultUri
         }
 
-        throw SQLException("Failed to insert row into $uri")    }
+        throw SQLException("Failed to insert row into $uri")
+    }
 
     override fun update(uri: Uri?, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
         return 0
     }
 
     override fun delete(uri: Uri?, selection: String?, selectionArgs: Array<out String>?): Int {
-        return 0
+        val result = db.writableDatabase.delete(TasksTable.NAME, selection, selectionArgs)
+        if (selectionArgs != null)
+            onDelete?.invoke(selectionArgs[0].toLong())
+        return result
     }
 
     override fun getType(uri: Uri?): String {
         return ""
+    }
+
+    fun registerOnDelete(onDelete: (Long)->Unit) {
+        this.onDelete = onDelete
+    }
+
+    fun unregisterOnDelete() {
+        this.onDelete = null
     }
 
     private class TasksSQLiteOpenHelper(context: Context)
@@ -82,7 +98,9 @@ class TasksContentProvider: ContentProvider() {
 
     companion object {
         val CONTENT_URI: Uri = Uri.parse("content://com.gmail.uwriegel.tasks/tasks")
+        lateinit var instance: TasksContentProvider
     }
 
+    private var onDelete: ((Long)->Unit)? = null
     private lateinit var db: TasksSQLiteOpenHelper
 }

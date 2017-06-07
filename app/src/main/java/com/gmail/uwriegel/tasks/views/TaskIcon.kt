@@ -34,5 +34,5 @@ class TaskIcon : View {
         return paint
     }
 
-    var paint: Paint by Delegates.notNull()
+    var paint: Paint
 }
