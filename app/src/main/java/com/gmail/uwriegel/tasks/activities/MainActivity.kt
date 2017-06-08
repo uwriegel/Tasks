@@ -27,6 +27,7 @@ import com.gmail.uwriegel.tasks.*
 import com.gmail.uwriegel.tasks.data.query
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -58,9 +59,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
         WebView.setWebContentsDebuggingEnabled(true)
-        //addJavaScriptInterface(contentView)
         contentView.setWebChromeClient(WebChromeClient())
-        contentView.setHapticFeedbackEnabled(true)
+        contentView.addJavascriptInterface(JavascriptInterface(this, contentView), "Native")
+        contentView.isHapticFeedbackEnabled = true
         contentView.loadUrl("file:///android_asset/index.html")
 
         val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
@@ -118,15 +119,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             chooseAccount()
         }
 
-        if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "") {
-            doAsync {
-                query(this@MainActivity)
-                uiThread {
-                }
-            }
-
+        if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "")
             UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
-        }
         else
             drawerLayout.openDrawer(navigationView)
     }

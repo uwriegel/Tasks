@@ -8,7 +8,7 @@ import com.gmail.uwriegel.tasks.db.TasksTable
 /**
  * Created by urieg on 08.06.2017.
  */
-fun query(context: Context) {
+fun query(context: Context): List<Task> {
     val cursor = context.contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE),
             "${TasksTable.KEY_TASK_TABLE_ID} = '${Settings.instance.selectedTasklist}'", null, null)
 
@@ -26,7 +26,6 @@ fun query(context: Context) {
         return list.toList()
     }
 
-    val tasks = toTaskList()
-    val test = tasks
+    return toTaskList()
 }
 
