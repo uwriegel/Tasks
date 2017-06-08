@@ -1,0 +1,142 @@
+body {
+    font-family: sans-serif;
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
+}
+
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Material Icons'), local('MaterialIcons-Regular'), url(../fonts/MaterialIcons-Regular.woff2) format('woff');
+}
+
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px; /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+}
+
+.invisible {
+    display: none;
+}
+
+#refresh {
+    width: 24px;
+    margin: 0px;
+}
+
+#saveButton {
+    width: 24px;
+}
+
+#icon {
+    width: 60px;
+    height: 60px;
+}
+
+#tasks {
+    top: 58px;
+    height: calc(100vh - 58px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0px;
+    list-style-type: none;
+    -webkit-padding-start: 0px;
+}
+
+#tasks>li:first-child {
+    border-top-style: none;
+}
+
+#tasks>li {
+    box-sizing: border-box;
+    border-top-style: solid;
+    border-width: 1px;
+    border-color: #eaeaea;
+    transition: height 0.3s;
+}
+.taskRow {
+    position: relative;
+    transition-timing-function: ease-out;
+}
+
+.taskContent {
+    padding-left: 45px;
+    padding-right: 35px;
+    margin: 10px;
+    display: inline-block;
+}
+
+.taskRow h1 {
+    font-size: initial;
+    font-weight: normal;
+    -webkit-margin-before: 0.3em;
+    -webkit-margin-after: 0.3em;
+}
+
+.taskRow i {
+    margin-top: 5px;
+}
+
+.undoButton {
+    color: white;
+    text-align: right;
+    margin: 10px;
+}
+
+.undoContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.taskNote {
+    font-size: small;
+}
+
+.taskDate {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 20px;
+    bottom: 0px;
+    text-align: center;
+    font-size: small;
+    margin: 10px;
+    /* margin-top: auto; */
+    /* margin-bottom: auto; */
+}
+
+.taskSymbol {
+    position: absolute;
+    color: white;
+    margin-left: 10px;
+    display: inline-block;
+    border-radius: 50%;
+    width: 35px;
+    background-color: #FF4081;
+    height: 35px;
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: center;
+    font-size: large;
+    line-height: 35px;
+    top: 0px;
+    bottom: 0px;
+}
+

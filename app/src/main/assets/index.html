@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" lang="de">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aufgaben</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+    <script src="scripts/shader.js"></script>
+    <script src="scripts/native.js"></script>
+</head>
+<body>
+<ul id="tasks">
+    <li>Affe</li>
+    <li>Schwein</li>
+    <li>Hund</li>
+    <li>Mensch</li>
+</ul>
+
+<template id="taskTemplate">
+    <li>
+        <div class="taskRow">
+            <div class="taskSymbol">
+                <i class="material-icons hidden">event</i>
+            </div>
+            <div class="taskContent">
+                <h1 class="taskTitle"></h1>
+                <div class="taskNote"></div>
+            </div>
+            <div class="taskDate">
+                <span class="taskDayOfWeek"></span><br /><span class="taskDateOnly"></span>
+            </div>
+        </div>
+    </li>
+</template>
+
+<template id="dismissUndoTemplate">
+    <span class="undoButton">Rückgängig</span>
+</template>
+
+</body>
+</html>

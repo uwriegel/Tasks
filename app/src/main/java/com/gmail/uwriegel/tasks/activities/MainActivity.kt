@@ -21,12 +21,17 @@ import com.gmail.uwriegel.tasks.google.TasklistsUpdater
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import android.support.v7.widget.RecyclerView
+import android.webkit.WebChromeClient
+import android.webkit.WebView
 import com.gmail.uwriegel.tasks.*
+import com.gmail.uwriegel.tasks.data.query
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 
 // TODO: Nach UpdateService Einträge anzeigen
@@ -41,15 +46,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         setSupportActionBar(toolbar)
 
-        recyclerView.setHasFixedSize(false)
-        val linearLayoutManager = LinearLayoutManager(this)
-        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-        val dividerItemDecoration = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
-        recyclerView.addItemDecoration(dividerItemDecoration)
-        recyclerView.layoutManager = linearLayoutManager
-        recyclerView.adapter = TaskAdapter(this)
+//        recyclerView.setHasFixedSize(false)
+//        val linearLayoutManager = LinearLayoutManager(this)
+//        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+//        val dividerItemDecoration = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
+//        recyclerView.addItemDecoration(dividerItemDecoration)
+//        recyclerView.layoutManager = linearLayoutManager
+//        recyclerView.adapter = TaskAdapter(this)
 
-        Log.d("Affe", "Aktivität: ${android.os.Process.myTid()}")
+        val webSettings = contentView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+        WebView.setWebContentsDebuggingEnabled(true)
+        //addJavaScriptInterface(contentView)
+        contentView.setWebChromeClient(WebChromeClient())
+        contentView.setHapticFeedbackEnabled(true)
+        contentView.loadUrl("file:///android_asset/index.html")
 
         val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
 
@@ -62,8 +74,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 return false
             }
         }
-        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
+//        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
+//        itemTouchHelper.attachToRecyclerView(recyclerView)
 
         fab.setOnClickListener {
             val swipeRefreshListner = SwipeRefreshLayout.OnRefreshListener {
@@ -72,11 +84,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 // The method calls setRefreshing(false) when it's finished.
             }
 
-            swipeLayout.post {
-                swipeLayout.isRefreshing = true
-                // directly call onRefresh() method
-                swipeRefreshListner.onRefresh()
-            }
+//            swipeLayout.post {
+//                swipeLayout.isRefreshing = true
+//                // directly call onRefresh() method
+//                swipeRefreshListner.onRefresh()
+//            }
             //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
             //                        .setAction("Action", null).show();
         }
@@ -90,7 +102,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        swipeLayout.isEnabled = false
+        //swipeLayout.isEnabled = false
 
         Settings.instance.initialzeGoogleAccountFromPreferences(this)
         if (Settings.instance.googleAccount.name == "")
@@ -106,8 +118,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             chooseAccount()
         }
 
-        if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "")
+        if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "") {
+            doAsync {
+                query(this@MainActivity)
+                uiThread {
+                }
+            }
+
             UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
+        }
         else
             drawerLayout.openDrawer(navigationView)
     }
@@ -117,7 +136,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      */
     override fun onPause() {
         super.onPause()
-        (recyclerView.adapter as TaskAdapter).onPause()
+       // (recyclerView.adapter as TaskAdapter).onPause()
     }
 
     /**
@@ -131,7 +150,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      */
     override fun onResume() {
         super.onResume()
-        (recyclerView.adapter as TaskAdapter).onResume()
+      //  (recyclerView.adapter as TaskAdapter).onResume()
     }
 
     /**
@@ -200,7 +219,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
-    fun notifyDataSetChanged() = recyclerView.adapter.notifyDataSetChanged()
+    //fun notifyDataSetChanged() = recyclerView.adapter.notifyDataSetChanged()
 
     private fun setAccountInNavigationHeader(navigationHeader: View) {
         if (Settings.instance.googleAccount.name != "") {
@@ -283,7 +302,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 val selectedTasklist = taskList.id
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
-                (recyclerView.adapter as TaskAdapter).refresh()
+                //(recyclerView.adapter as TaskAdapter).refresh()
                 UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }
         }
