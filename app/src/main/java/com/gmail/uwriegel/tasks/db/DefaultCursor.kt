@@ -1,4 +1,4 @@
-package com.gmail.uwriegel.tasks
+package com.gmail.uwriegel.tasks.db
 
 import android.database.AbstractCursor
 

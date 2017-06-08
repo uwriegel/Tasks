@@ -1,8 +1,6 @@
 package com.gmail.uwriegel.tasks.google
 
 import android.content.Context
-import android.util.Log
-import com.gmail.uwriegel.tasks.MainActivity
 import com.gmail.uwriegel.tasks.Settings
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.jackson2.JacksonFactory

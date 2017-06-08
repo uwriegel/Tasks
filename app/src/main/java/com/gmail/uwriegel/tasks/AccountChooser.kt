@@ -1,19 +1,18 @@
 package com.gmail.uwriegel.tasks
 
 import android.Manifest
-import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.support.v4.app.FragmentActivity
 import android.util.Log
-import com.gmail.uwriegel.tasks.MainActivity.Companion.TAG
+import com.gmail.uwriegel.tasks.activities.MainActivity
+import com.gmail.uwriegel.tasks.activities.MainActivity.Companion.TAG
 import com.gmail.uwriegel.tasks.json.GoogleAccount
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.gson.Gson
 import pub.devrel.easypermissions.EasyPermissions
 
 /**

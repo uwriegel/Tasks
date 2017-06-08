@@ -1,9 +1,8 @@
-package com.gmail.uwriegel.tasks
+package com.gmail.uwriegel.tasks.activities
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
@@ -19,15 +18,15 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
+import pub.devrel.easypermissions.AfterPermissionGranted
+import pub.devrel.easypermissions.EasyPermissions
+import android.support.v7.widget.RecyclerView
+import com.gmail.uwriegel.tasks.*
+import com.gmail.uwriegel.tasks.db.TasksContentProvider
+import com.gmail.uwriegel.tasks.db.TasksTable
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import pub.devrel.easypermissions.AfterPermissionGranted
-import pub.devrel.easypermissions.EasyPermissions
-import android.util.TypedValue
-import android.support.v7.widget.RecyclerView
-import com.gmail.uwriegel.tasks.db.TasksContentProvider
-import com.gmail.uwriegel.tasks.db.TasksTable
 
 
 // TODO: Nach UpdateService Einträge anzeigen
@@ -242,7 +241,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun chooseAccount() { accountChooser = AccountChooser(this)}
+    private fun chooseAccount() { accountChooser = AccountChooser(this)
+    }
 
     /**
      * Attempts to set the account used with the API credentials. If an account

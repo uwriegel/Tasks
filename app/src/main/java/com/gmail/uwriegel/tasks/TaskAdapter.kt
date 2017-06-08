@@ -5,13 +5,13 @@ import android.database.Cursor
 import android.os.Handler
 import android.support.v7.widget.RecyclerView
 import android.text.Html
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
+import com.gmail.uwriegel.tasks.db.DefaultCursor
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import com.gmail.uwriegel.tasks.db.getPosition
