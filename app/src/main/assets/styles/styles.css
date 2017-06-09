@@ -2,7 +2,7 @@ body {
     font-family: sans-serif;
     padding: 0px;
     margin: 0px;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 @font-face {
@@ -49,10 +49,7 @@ body {
 }
 
 #tasks {
-    top: 58px;
-    height: calc(100vh - 58px);
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0px;
     list-style-type: none;
     -webkit-padding-start: 0px;

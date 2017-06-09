@@ -4,5 +4,5 @@ function setTasks(tasksString) {
 
     var jason = decodeURIComponent(atob(tasksString))
     var tasks =  JSON.parse(jason)
-    var affe = tasks
+    ContentView.insertTasks(tasks)
 }

@@ -18,7 +18,8 @@ fun query(context: Context): List<Task> {
             while (true) {
                 val task = Task(cursor.getString(1),
                         cursor.getString(2) ?: "",
-                        cursor.getLong(0))
+                        cursor.getLong(0),
+                        cursor.getLong(3))
                 list.add(task)
                 if (!cursor.moveToNext())
                     break
