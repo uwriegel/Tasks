@@ -23,4 +23,3 @@ fun downloadFile(urlString: String, outputStream: OutputStream) {
         }
     }
 }
-
