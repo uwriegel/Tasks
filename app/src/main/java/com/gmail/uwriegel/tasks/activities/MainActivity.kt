@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setAccountInNavigationHeader(navigationHeader)
 
         val navView = navigationHeader.findViewById(R.id.navView) as WebView
-        navView.loadUrl("https://www.google.de")
+        navView.loadUrl("file:///android_asset/navheader.html")
 
         initializeNavigationDrawer()
         val navHeader = navigationHeader.findViewById(R.id.navHeader)
