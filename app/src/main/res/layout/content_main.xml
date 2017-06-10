@@ -12,11 +12,12 @@
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@android:color/holo_orange_light">
 
         <WebView
             android:id="@+id/contentView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="wrap_content"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 </LinearLayout>

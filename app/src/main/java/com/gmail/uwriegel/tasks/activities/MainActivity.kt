@@ -21,7 +21,6 @@ import com.gmail.uwriegel.tasks.data.query
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
 import com.gmail.uwriegel.tasks.webview.JavascriptInterface
 import com.gmail.uwriegel.tasks.webview.setTasks
-import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -85,8 +84,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val navigationHeader = navigationView.getHeaderView(0)
         navigationView.setNavigationItemSelectedListener(this)
         setAccountInNavigationHeader(navigationHeader)
+
+        val navView = navigationHeader.findViewById(R.id.navView) as WebView
+        navView.loadUrl("https://www.google.de")
+
         initializeNavigationDrawer()
-        navigationHeader.setOnClickListener {
+        val navHeader = navigationHeader.findViewById(R.id.navHeader)
+        navHeader.setOnClickListener {
             val googleAccountSpinner = navigationHeader.findViewById(R.id.googleAccountSpinner) as ImageView
             googleAccountSpinner.setImageResource(R.drawable.dropup)
             chooseAccount()
@@ -209,8 +213,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val tasklists = Settings.instance.getTasklists(this)
         if (tasklists.size > 0) {
             var menuId = MENU_TASKLISTS_START_ID
+
+            val sm1 = menu.addSubMenu("Schweine")
+
             tasklists.forEach { (name, id) ->
-                val mi = menu.add(MENU_GROUP_TASKLISTS, menuId++, 0, name)
+                val mi = sm1.add(MENU_GROUP_TASKLISTS, menuId++, 0, name)
                 mi.isCheckable = true
                 mi.setIcon(R.drawable.ic_list)
                 val selectedTasklist = Settings.instance.selectedTasklist
@@ -220,6 +227,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 } else
                     mi.isChecked = false
             }
+
+            sm1.setGroupCheckable(MENU_GROUP_TASKLISTS, true, true)
+
+
+            val sm = menu.addSubMenu("Affen")
+            val mi = sm.add(MENU_GROUP_TASKLISTS +1, 1, 0, "SChwachkopp")
+            mi.isCheckable = true
+            mi.isChecked = true
+            val mi2 = sm.add(MENU_GROUP_TASKLISTS +1, 2, 0, "Hirnschaden")
+            mi2.isCheckable = true
+            mi2.isChecked = true
+            val mi3 = sm.add(MENU_GROUP_TASKLISTS +1, 3, 0, "Affenkopf")
+            mi3.isCheckable = true
+            sm.setGroupCheckable(MENU_GROUP_TASKLISTS + 1, true, false)
+            mi.isChecked = true
+
         }
     }
 
@@ -273,9 +296,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }
+            drawerLayout.closeDrawer(GravityCompat.START)
         }
-
-        drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 
