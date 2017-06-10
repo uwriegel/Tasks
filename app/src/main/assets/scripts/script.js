@@ -4,6 +4,7 @@ var ContentView = (function () {
     var itemFactory
 
     function insertTasks(tasks) {
+        clear()
         tasks.forEach(t => {
             insertTask(t)
         })
@@ -83,6 +84,10 @@ var ContentView = (function () {
     function getDayOfWeek(date) {
         var days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
         return days[date.getDay()];
+    }
+
+    function clear() {
+        taskList.innerHTML = '';
     }
 
     document.addEventListener("DOMContentLoaded", () => {

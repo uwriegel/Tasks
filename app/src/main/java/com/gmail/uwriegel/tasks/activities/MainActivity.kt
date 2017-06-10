@@ -8,31 +8,27 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
-import com.gmail.uwriegel.tasks.google.TasklistsUpdater
-import pub.devrel.easypermissions.AfterPermissionGranted
-import pub.devrel.easypermissions.EasyPermissions
-import android.support.v7.widget.RecyclerView
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.widget.ImageView
+import android.widget.TextView
 import com.gmail.uwriegel.tasks.*
 import com.gmail.uwriegel.tasks.data.query
-import com.gmail.uwriegel.tasks.db.TasksContentProvider
-import com.gmail.uwriegel.tasks.db.TasksTable
+import com.gmail.uwriegel.tasks.google.TasklistsUpdater
+import com.gmail.uwriegel.tasks.webview.JavascriptInterface
+import com.gmail.uwriegel.tasks.webview.setTasks
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import pub.devrel.easypermissions.AfterPermissionGranted
+import pub.devrel.easypermissions.EasyPermissions
 
 
 // TODO: Nach UpdateService Einträge anzeigen
@@ -47,14 +43,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         setSupportActionBar(toolbar)
 
-//        recyclerView.setHasFixedSize(false)
-//        val linearLayoutManager = LinearLayoutManager(this)
-//        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-//        val dividerItemDecoration = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
-//        recyclerView.addItemDecoration(dividerItemDecoration)
-//        recyclerView.layoutManager = linearLayoutManager
-//        recyclerView.adapter = TaskAdapter(this)
-
         val webSettings = contentView.settings
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
@@ -64,20 +52,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         contentView.isHapticFeedbackEnabled = true
         contentView.loadUrl("file:///android_asset/index.html")
 
-        val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
-                val halter = viewHolder as TaskAdapter.TaskViewHolder
-                contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_ID} = ?", arrayOf("${halter.id}"))
-            }
-
-            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
-                return false
-            }
-        }
-//        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
-//        itemTouchHelper.attachToRecyclerView(recyclerView)
-
         fab.setOnClickListener {
             val swipeRefreshListner = SwipeRefreshLayout.OnRefreshListener {
                 Log.i(TAG, "onRefresh called from SwipeRefreshLayout")
@@ -85,14 +59,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 // The method calls setRefreshing(false) when it's finished.
             }
 
-//            swipeLayout.post {
-//                swipeLayout.isRefreshing = true
-//                // directly call onRefresh() method
-//                swipeRefreshListner.onRefresh()
-//            }
-            //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            //                        .setAction("Action", null).show();
+            swipeRefresh.post {
+                swipeRefresh.isRefreshing = true
+                // directly call onRefresh() method
+                swipeRefreshListner.onRefresh()
+            }
+                //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //                        .setAction("Action", null).show();
         }
+        swipeRefresh.isEnabled = false
 
         val toggle = object : ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             override fun onDrawerOpened(drawerView: View?) {
@@ -102,8 +77,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
-
-        //swipeLayout.isEnabled = false
 
         Settings.instance.initialzeGoogleAccountFromPreferences(this)
         if (Settings.instance.googleAccount.name == "")
@@ -130,7 +103,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      */
     override fun onPause() {
         super.onPause()
-       // (recyclerView.adapter as TaskAdapter).onPause()
     }
 
     /**
@@ -144,7 +116,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      */
     override fun onResume() {
         super.onResume()
-      //  (recyclerView.adapter as TaskAdapter).onResume()
     }
 
     /**
@@ -212,8 +183,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
-
-    //fun notifyDataSetChanged() = recyclerView.adapter.notifyDataSetChanged()
 
     private fun setAccountInNavigationHeader(navigationHeader: View) {
         if (Settings.instance.googleAccount.name != "") {
@@ -296,7 +265,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 val selectedTasklist = taskList.id
                 Settings.instance.setSelectedTasklist(this, selectedTasklist)
                 title = taskList.name
-                //(recyclerView.adapter as TaskAdapter).refresh()
+
+                doAsync {
+                    val tasks = query(this@MainActivity)
+                    uiThread { contentView.setTasks(tasks)}
+                }
+
                 UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }
         }
