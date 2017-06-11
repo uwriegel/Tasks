@@ -11,15 +11,22 @@
 <body>
     <ul id="taskslist"></ul>
     <h2>Kalenderauswahl</h2>
-    <ul id="calendarslist">
-        <li>Uwes Kalender</li>
-        <li>Geburtstage</li>
-        <li>Testeinträge</li>
-    </ul>
+    <ul id="calendarslist"></ul>
     <template id="taskListTemplate">
         <li>
             <i class="material-icons">list</i>
             <span class="taskListName"></span>
+        </li>
+    </template>
+    <template id="calendarListTemplate">
+        <li>
+            <div>
+                <i class="material-icons unselected">event_busy</i>
+                <i class="material-icons selected">event_available</i>
+                <div>
+                    <span class="calendarName"></span><br /><span class="calendarAccount"></span>
+                </div>
+            </div>
         </li>
     </template>
 </body>

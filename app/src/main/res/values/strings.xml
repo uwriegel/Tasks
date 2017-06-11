@@ -9,6 +9,7 @@
     <string name="google_account_access_needed">This app needs to access your Google account (via Contacts).</string>
     <string name="google_account">Google account</string>
     <string name="google_play_services_required">This app requires Google Play Services. Please install Google Play Services on your device and relaunch this app.</string>
+    <string name="permission_on_calendars_required">Gib\' mir Berechtigungen auf Deinen Kalender!</string>
 </resources>
 
 

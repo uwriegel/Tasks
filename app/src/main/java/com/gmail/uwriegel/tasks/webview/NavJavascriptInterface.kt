@@ -17,6 +17,7 @@ class NavJavascriptInterface(val context: Context, val navView: WebView, val cal
     @JavascriptInterface
     fun initialize() {
         context.doAsync {
+            callback.getCalendarsList()
             val tasklists = Settings.instance.getTasklists(context)
             uiThread { navView.setTasksList(tasklists, Settings.instance.selectedTasklist) }
         }

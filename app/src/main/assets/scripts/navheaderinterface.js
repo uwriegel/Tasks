@@ -4,3 +4,8 @@ function setTasksList(tasksListString, selectedTasklist) {
     var tasksList =  JSON.parse(jason)
     NavView.setTasksList(tasksList, selectedTasklist)
 }
+
+function setCalendarsList(calendarsListString) {
+    var calendarsList = JSON.parse(calendarsListString)
+    NavView.setCalendarLists(calendarsList)
+}

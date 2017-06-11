@@ -3,6 +3,7 @@ var NavView = (function () {
     var taskslistUl
     var calendarslistUl
     var taskListFactory
+    var calendarListFactory
     //var itemFactory
 
     function setTasksList(taskslist, selectedTasklist) {
@@ -33,16 +34,40 @@ var NavView = (function () {
         })
     }
 
+    function setCalendarLists(calendarLists) {
+        calendarslistUl.innerHTML = ''
+        var lis = calendarLists.map(calendarList => {
+            var li = calendarListFactory.cloneNode(true);
+            li.dataset["id"] = calendarList.id;
+//            if (ids.find(id => id == calendarList.id))
+//                li.classList.add("calendarSelected");
+            var name = li.querySelector('.calendarName');
+            name.innerText = calendarList.name;
+            var account = li.querySelector('.calendarAccount');
+            account.innerText = calendarList.account;
+            li.onclick = evt => {
+                if (!li.classList.contains("calendarSelected"))
+                    li.classList.add("calendarSelected");
+                else
+                    li.classList.remove("calendarSelected");
+                let lis = Array.from(calendarUl.querySelectorAll('li'));
+            };
+            return li;
+        }).forEach(li => {
+            calendarslistUl.appendChild(li);
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         taskslistUl = document.getElementById("taskslist");
         calendarslistUl = document.getElementById("calendarslist");
         taskListFactory = document.getElementById('taskListTemplate').content.querySelector('li');
-
-      //  itemFactory = document.getElementById('taskTemplate').content.querySelector('li');
+        calendarListFactory = document.getElementById('calendarListTemplate').content.querySelector('li');
         Native.initialize()
     })
 
     return {
-        setTasksList: setTasksList
+        setTasksList: setTasksList,
+        setCalendarLists: setCalendarLists
     }
 })()

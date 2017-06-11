@@ -16,6 +16,7 @@ import android.webkit.WebView
 import android.widget.ImageView
 import android.widget.TextView
 import com.gmail.uwriegel.tasks.*
+import com.gmail.uwriegel.tasks.calendar.getCalendarsList
 import com.gmail.uwriegel.tasks.data.query
 import com.gmail.uwriegel.tasks.google.Tasklist
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
@@ -94,6 +95,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         navViewSettings.javaScriptEnabled = true
         navView.setWebChromeClient(WebChromeClient())
         navView.addJavascriptInterface(NavJavascriptInterface(this, navView, object : NavHeaderCallbacks {
+            override fun getCalendarsList() {
+                this@MainActivity.getCalendarsList()
+            }
+
             override fun onTasklistSelected(tasklist: Tasklist) {
                 Settings.instance.setSelectedTasklist(this@MainActivity, tasklist.id)
 
@@ -290,6 +295,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         val REQUEST_ACCOUNT_PICKER = 1000
         val REQUEST_GOOGLE_PLAY_SERVICES = 1001
+        val MY_PERMISSIONS_REQUEST_READ_CALENDAR = 55
         const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
         private val MENU_GROUP_TASKLISTS = 200
         private val MENU_TASKLISTS_START_ID = 2000
