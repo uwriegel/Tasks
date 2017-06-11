@@ -6,6 +6,7 @@ import com.gmail.uwriegel.tasks.google.Tasklist
 import com.gmail.uwriegel.tasks.json.GoogleAccount
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 
 /**
  * Created by urieg on 06.05.2017.
@@ -37,14 +38,15 @@ class Settings private constructor() {
         editor.apply()
     }
 
-    fun getTasklists(context: Context): Array<Tasklist> {
+    fun getTasklists(context: Context): Iterable<Tasklist> {
         val settings = getPreferences(context).getString(PREF_TASKLISTS, null)
         if (settings != null) {
             val builder = GsonBuilder()
             val gson = builder.create()
-            return gson.fromJson<Array<Tasklist>>(settings, Array<Tasklist>::class.java)
+            val turnsType = object : TypeToken<List<Tasklist>>() {}.type
+            return gson.fromJson<List<Tasklist>>(settings, turnsType)
         } else
-            return arrayOf()
+            return emptyList()
     }
 
     fun setTasklists(context: Context, tasklists: Iterable<Tasklist>) {

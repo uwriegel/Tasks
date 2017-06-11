@@ -16,7 +16,7 @@ fun WebView.setTasks(tasks: List<Task>) {
     this.loadUrl("javascript:setTasks('$b64')")
 }
 
-fun WebView.setTasksList(tasksList: Array<Tasklist>, selectedTasklist: String) {
+fun WebView.setTasksList(tasksList: Iterable<Tasklist>, selectedTasklist: String) {
     val tasksListString = Gson().toJson(tasksList)
     val b64 = convertToBase64(tasksListString)
     this.loadUrl("javascript:setTasksList('$b64', '$selectedTasklist')")

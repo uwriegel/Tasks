@@ -3,7 +3,6 @@ package com.gmail.uwriegel.tasks.activities
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
@@ -35,7 +34,7 @@ import pub.devrel.easypermissions.EasyPermissions
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: In die Nav-Liste Kalender übernehmen
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, EasyPermissions.PermissionCallbacks {
+class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -82,10 +81,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             chooseAccount()
 
         val navigationHeader = navigationView.getHeaderView(0)
-        navigationView.setNavigationItemSelectedListener(this)
         setAccountInNavigationHeader(navigationHeader)
 
-        val navView = navigationHeader.findViewById(R.id.navView) as WebView
+        if (Settings.instance.selectedTasklist != "") {
+            var tls = Settings.instance.getTasklists(this)
+            val selT = tls.first {  it.id == Settings.instance.selectedTasklist }
+            title = selT.name
+        }
+
+        navView = navigationHeader.findViewById(R.id.navView) as WebView
         val navViewSettings = navView.settings
         navViewSettings.javaScriptEnabled = true
         navView.setWebChromeClient(WebChromeClient())
@@ -109,7 +113,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         navView.isHapticFeedbackEnabled = true
         navView.loadUrl("file:///android_asset/navheader.html")
 
-        initializeNavigationDrawer()
         val navHeader = navigationHeader.findViewById(R.id.navHeader)
         navHeader.setOnClickListener {
             val googleAccountSpinner = navigationHeader.findViewById(R.id.googleAccountSpinner) as ImageView
@@ -168,7 +171,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (accountChooser!!.onAccountPicked(this, accountPicked, data))
                     TasklistsUpdater(this).update {
                         Settings.instance.setTasklists(this, it)
-                        initializeNavigationDrawer()
+                        navView.setTasksList(it, Settings.instance.selectedTasklist)
                     }
 
                 accountChooser = null
@@ -220,53 +223,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun clearNavigationDrawer(menu: Menu?) {
-        var menuToClear = menu
-        if (menuToClear == null)
-            menuToClear = navigationView.menu
-        menuToClear?.clear()
-    }
-
-    private fun initializeNavigationDrawer() {
-        val menu = navigationView.menu
-        clearNavigationDrawer(menu)
-
-        val tasklists = Settings.instance.getTasklists(this)
-        if (tasklists.size > 0) {
-            var menuId = MENU_TASKLISTS_START_ID
-
-            val sm1 = menu.addSubMenu("Schweine")
-
-            tasklists.forEach { (name, id) ->
-                val mi = sm1.add(MENU_GROUP_TASKLISTS, menuId++, 0, name)
-                mi.isCheckable = true
-                mi.setIcon(R.drawable.ic_list)
-                val selectedTasklist = Settings.instance.selectedTasklist
-                if (selectedTasklist != "" && selectedTasklist.compareTo(id) == 0) {
-                    mi.isChecked = true
-                    title = mi.title
-                } else
-                    mi.isChecked = false
-            }
-
-            sm1.setGroupCheckable(MENU_GROUP_TASKLISTS, true, true)
-
-
-            val sm = menu.addSubMenu("Affen")
-            val mi = sm.add(MENU_GROUP_TASKLISTS +1, 1, 0, "SChwachkopp")
-            mi.isCheckable = true
-            mi.isChecked = true
-            val mi2 = sm.add(MENU_GROUP_TASKLISTS +1, 2, 0, "Hirnschaden")
-            mi2.isCheckable = true
-            mi2.isChecked = true
-            val mi3 = sm.add(MENU_GROUP_TASKLISTS +1, 3, 0, "Affenkopf")
-            mi3.isCheckable = true
-            sm.setGroupCheckable(MENU_GROUP_TASKLISTS + 1, true, false)
-            mi.isChecked = true
-
-        }
-    }
-
     private fun chooseAccount() { accountChooser = AccountChooser(this)
     }
 
@@ -299,29 +255,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Handle navigation view item clicks here.
-        if (item.itemId >= MENU_TASKLISTS_START_ID) {
-            val tasklists = Settings.instance.getTasklists(this)
-            if (tasklists.size >  0) {
-                val index = item.itemId - MENU_TASKLISTS_START_ID
-                val taskList = tasklists[index]
-                val selectedTasklist = taskList.id
-                Settings.instance.setSelectedTasklist(this, selectedTasklist)
-                title = taskList.name
-
-                doAsync {
-                    val tasks = query(this@MainActivity)
-                    uiThread { contentView.setTasks(tasks)}
-                }
-
-                UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
-            }
-            drawerLayout.closeDrawer(GravityCompat.START)
-        }
-        return true
-    }
-
     /**
      * Callback for when a permission is granted using the EasyPermissions
      * library.
@@ -349,6 +282,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private var accountChooser: AccountChooser? = null
+    private lateinit var navView: WebView
 
     companion object {
 
