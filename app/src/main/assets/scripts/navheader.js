@@ -5,11 +5,15 @@ var NavView = (function () {
     var taskListFactory
     //var itemFactory
 
-    function setTasksList(taskslist) {
+    function setTasksList(taskslist, selectedTasklist) {
         taskslistUl.innerHTML = ''
         taskslist.forEach(item => {
             var li = taskListFactory.cloneNode(true)
             li.dataset["id"] = item.id
+
+            if (item.id == selectedTasklist)
+                li.classList.add("selectedList");
+
             var name = li.querySelector('.taskListName')
             name.innerText = item.name
             li.onclick = () => {

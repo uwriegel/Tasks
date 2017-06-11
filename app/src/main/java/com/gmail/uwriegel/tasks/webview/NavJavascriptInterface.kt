@@ -18,13 +18,13 @@ import org.json.JSONObject
 /**
  * Created by urieg on 11.06.2017.
  */
-class NavJavascriptInterface(val context: Context, val navView: WebView) {
+class NavJavascriptInterface(val context: Context, val navView: WebView, val callback: NavHeaderCallbacks) {
     @JavascriptInterface
     fun initialize() {
         context.doAsync {
             val tasks = query(context)
             val tasklists = Settings.instance.getTasklists(context)
-            uiThread { navView.setTasksList(tasklists) }
+            uiThread { navView.setTasksList(tasklists, Settings.instance.selectedTasklist) }
         }
     }
 
@@ -40,9 +40,7 @@ class NavJavascriptInterface(val context: Context, val navView: WebView) {
         val builder = GsonBuilder()
         val gson = builder.create()
         val tasklist = gson.fromJson<Tasklist>(tasklistString, Tasklist::class.java)
-        context.doAsync {
-            uiThread { navView.playSoundEffect(SoundEffectConstants.CLICK) }
-        }
+        callback.onTasklistSelected(tasklist)
     }
 }
 

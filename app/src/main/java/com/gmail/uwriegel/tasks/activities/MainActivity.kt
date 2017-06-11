@@ -18,11 +18,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.gmail.uwriegel.tasks.*
 import com.gmail.uwriegel.tasks.data.query
+import com.gmail.uwriegel.tasks.google.Tasklist
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
-import com.gmail.uwriegel.tasks.webview.JavascriptInterface
-import com.gmail.uwriegel.tasks.webview.NavJavascriptInterface
-import com.gmail.uwriegel.tasks.webview.setTasks
-import com.gmail.uwriegel.tasks.webview.setTasksList
+import com.gmail.uwriegel.tasks.webview.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -91,7 +89,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val navViewSettings = navView.settings
         navViewSettings.javaScriptEnabled = true
         navView.setWebChromeClient(WebChromeClient())
-        navView.addJavascriptInterface(NavJavascriptInterface(this, navView), "Native")
+        navView.addJavascriptInterface(NavJavascriptInterface(this, navView, object : NavHeaderCallbacks {
+            override fun onTasklistSelected(tasklist: Tasklist) {
+                Settings.instance.setSelectedTasklist(this@MainActivity, tasklist.id)
+
+                doAsync {
+                    val tasks = query(this@MainActivity)
+                    uiThread {
+                        title = tasklist.name
+                        contentView.setTasks(tasks)
+                        drawerLayout.closeDrawer(GravityCompat.START)
+                    }
+                }
+
+                UpdateService.startUpdate(this@MainActivity, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
+            }
+
+        }), "Native")
         navView.isHapticFeedbackEnabled = true
         navView.loadUrl("file:///android_asset/navheader.html")
 
