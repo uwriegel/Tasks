@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Aufgaben</title>
     <link rel="stylesheet" href="styles/navheader.css" />
-    <script src="scripts/script.js"></script>
+    <script src="scripts/navheaderinterface.js"></script>
+    <script src="scripts/navheader.js"></script>
 </head>
 <body>
-    <ul id="taskslist">
-        <li>Google Aufgaben</li>
-        <li>Testliste</li>
-    </ul>
+    <ul id="taskslist"></ul>
     <h2>Kalenderauswahl</h2>
     <ul id="calendarslist">
         <li>Uwes Kalender</li>
         <li>Geburtstage</li>
         <li>Testeinträge</li>
     </ul>
+    <template id="taskListTemplate">
+        <li>
+            <i class="material-icons">list</i>
+            <span class="taskListName"></span>
+        </li>
+    </template>
 </body>
 </html>

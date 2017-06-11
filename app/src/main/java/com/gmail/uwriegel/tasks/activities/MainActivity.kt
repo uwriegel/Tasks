@@ -20,7 +20,9 @@ import com.gmail.uwriegel.tasks.*
 import com.gmail.uwriegel.tasks.data.query
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
 import com.gmail.uwriegel.tasks.webview.JavascriptInterface
+import com.gmail.uwriegel.tasks.webview.NavJavascriptInterface
 import com.gmail.uwriegel.tasks.webview.setTasks
+import com.gmail.uwriegel.tasks.webview.setTasksList
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -86,6 +88,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setAccountInNavigationHeader(navigationHeader)
 
         val navView = navigationHeader.findViewById(R.id.navView) as WebView
+        val navViewSettings = navView.settings
+        navViewSettings.javaScriptEnabled = true
+        navView.setWebChromeClient(WebChromeClient())
+        navView.addJavascriptInterface(NavJavascriptInterface(this, navView), "Native")
+        navView.isHapticFeedbackEnabled = true
         navView.loadUrl("file:///android_asset/navheader.html")
 
         initializeNavigationDrawer()
