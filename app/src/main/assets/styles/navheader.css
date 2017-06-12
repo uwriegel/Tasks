@@ -31,6 +31,30 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+#drawerHeader {
+    padding-left: 15px;
+    color: white;
+    font-size: small;
+    background: linear-gradient(135deg, #2E7D32, #4CAF50, #81C784);
+}
+
+#icon {
+    width: 64px;
+    margin-top: 20px;
+    border-radius: 50%;
+}
+
+#drawerHeader h1 {
+    font-size: larger;
+    font-weight: 400;
+    -webkit-margin-before: 1.1em;
+    -webkit-margin-after: 0.3em;
+}
+
+#drawerHeader div {
+    padding-bottom: 30px;
+}
+
 h2 {
     font-weight: normal;
     margin-left: 15px;
