@@ -8,4 +8,5 @@ import com.gmail.uwriegel.tasks.google.Tasklist
 interface NavHeaderCallbacks {
     abstract fun getCalendarsList(): Unit
     abstract fun onTasklistSelected(tasklist: Tasklist): Unit
+    abstract fun chooseAccount(): Unit
 }

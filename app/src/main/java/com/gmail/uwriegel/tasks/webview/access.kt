@@ -5,6 +5,7 @@ import android.util.Base64
 import android.webkit.WebView
 import com.gmail.uwriegel.tasks.data.Task
 import com.gmail.uwriegel.tasks.google.Tasklist
+import com.gmail.uwriegel.tasks.json.GoogleAccount
 import com.google.gson.Gson
 
 /**
@@ -20,6 +21,12 @@ fun WebView.setTasksList(tasksList: Iterable<Tasklist>, selectedTasklist: String
     val tasksListString = Gson().toJson(tasksList)
     val b64 = convertToBase64(tasksListString)
     this.loadUrl("javascript:setTasksList('$b64', '$selectedTasklist')")
+}
+
+fun WebView.setAccount(googleAccount: GoogleAccount) {
+    val googleAccountString = Gson().toJson(googleAccount)
+    val b64 = convertToBase64(googleAccountString)
+    this.loadUrl("javascript:initializeAccount('$b64')")
 }
 
 private fun convertToBase64(text: String): String {

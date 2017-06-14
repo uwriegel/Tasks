@@ -31,6 +31,20 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+#marker {
+    position: absolute;
+    right: 25px;
+    top: 120px;
+    transform: rotate(45deg);
+    transition: transform 1s;
+    font-size: x-small;
+    /*transform-origin: 6px 12px;*/
+}
+
+#marker.opened {
+    transform: rotate(225deg);
+}
+
 #drawerHeader {
     padding-left: 15px;
     color: white;

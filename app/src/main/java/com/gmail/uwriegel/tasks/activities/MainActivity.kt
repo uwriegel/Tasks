@@ -82,12 +82,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             chooseAccount()
 
         val navigationHeader = navigationView.getHeaderView(0)
-        setAccountInNavigationHeader(navigationHeader)
 
         if (Settings.instance.selectedTasklist != "") {
             var tls = Settings.instance.getTasklists(this)
-            val selT = tls.first {  it.id == Settings.instance.selectedTasklist }
-            title = selT.name
+            val selectedTasklist = tls.first {  it.id == Settings.instance.selectedTasklist }
+            title = selectedTasklist.name
         }
 
         navView = navigationHeader.findViewById(R.id.navView) as WebView
@@ -114,16 +113,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 UpdateService.startUpdate(this@MainActivity, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }
 
+            override fun chooseAccount() {
+                this@MainActivity.chooseAccount()
+            }
         }), "Native")
         navView.isHapticFeedbackEnabled = true
-        navView.loadUrl("file:///android_asset/navheader.html")
-
-        val navHeader = navigationHeader.findViewById(R.id.navHeader)
-        navHeader.setOnClickListener {
-            val googleAccountSpinner = navigationHeader.findViewById(R.id.googleAccountSpinner) as ImageView
-            googleAccountSpinner.setImageResource(R.drawable.dropup)
-            chooseAccount()
-        }
+        navView.loadUrl("file:///android_asset/navheader.html?name=${Settings.instance.googleAccount.name}&displayName=${Settings.instance.googleAccount.displayName}&photo=${Settings.instance.googleAccount.photoUrl}")
 
         if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "")
             UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
@@ -181,11 +176,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
                 accountChooser = null
 
-                val navigationHeader = navigationView.getHeaderView(0)
                 if (resultCode == Activity.RESULT_OK)
-                    setAccountInNavigationHeader(navigationHeader)
-                val googleAccountSpinner = navigationHeader.findViewById(R.id.googleAccountSpinner) as ImageView
-                googleAccountSpinner.setImageResource(R.drawable.dropdown)
+                    navView.setAccount(Settings.instance.googleAccount)
+
                 title = getString(R.string.app_name)
             }
         // REQUEST_AUTHORIZATION ->
@@ -217,19 +210,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
-    private fun setAccountInNavigationHeader(navigationHeader: View) {
-        if (Settings.instance.googleAccount.name != "") {
-            val textViewGoogleAccount = navigationHeader.findViewById(R.id.textViewGoogleAccount) as TextView
-            textViewGoogleAccount.text = Settings.instance.googleAccount.name
-            val textViewGoogleDisplayName = navigationHeader.findViewById(R.id.textViewGoogleDisplayName) as TextView
-            textViewGoogleDisplayName.text = Settings.instance.googleAccount.displayName
-            val imageView = navigationHeader.findViewById(R.id.imageView) as ImageView
-            Avatar(this).set(imageView)
-        }
-    }
-
-    private fun chooseAccount() { accountChooser = AccountChooser(this)
-    }
+    private fun chooseAccount() { accountChooser = AccountChooser(this) }
 
     /**
      * Attempts to set the account used with the API credentials. If an account

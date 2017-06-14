@@ -4,7 +4,11 @@ var NavView = (function () {
     var calendarslistUl
     var taskListFactory
     var calendarListFactory
-    //var itemFactory
+    var accountDisplayName
+    var accountName
+    var icon
+    var noAvatar
+    var marker
 
     function setTasksList(taskslist, selectedTasklist) {
         taskslistUl.innerHTML = ''
@@ -58,16 +62,43 @@ var NavView = (function () {
         });
     }
 
+    function initializeAccount(account) {
+        marker.classList.remove("opened")
+        accountName.innerText = account.name
+        accountDisplayName.innerText = account.displayName
+        icon.src = account.photoUrl ? account.photoUrl : noAvatar
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         taskslistUl = document.getElementById("taskslist");
         calendarslistUl = document.getElementById("calendarslist");
         taskListFactory = document.getElementById('taskListTemplate').content.querySelector('li');
         calendarListFactory = document.getElementById('calendarListTemplate').content.querySelector('li');
+        accountDisplayName = document.getElementById("accountDisplayName")
+        accountName = document.getElementById("accountName")
+        icon = document.getElementById("icon")
+        var header = document.getElementById("drawerHeader")
+        marker = document.getElementById("marker")
+        header.onclick = evt => {
+            marker.classList.add("opened")
+            Native.doHapticFeedback()
+            Native.chooseAccount()
+        }
+
+        var queries = extractQuery(location.search.substring(1))
+        accountName.innerText = queries.name
+        accountDisplayName.innerText = queries.displayName
+        noAvatar = icon.src
+        if (queries.photo)
+            icon.src = queries.photo
+
         Native.initialize()
     })
 
     return {
         setTasksList: setTasksList,
-        setCalendarLists: setCalendarLists
+        setCalendarLists: setCalendarLists,
+        initializeAccount: initializeAccount
     }
 })()
+

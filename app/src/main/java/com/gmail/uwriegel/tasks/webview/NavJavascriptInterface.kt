@@ -31,6 +31,11 @@ class NavJavascriptInterface(val context: Context, val navView: WebView, val cal
     }
 
     @JavascriptInterface
+    fun chooseAccount() {
+        callback.chooseAccount()
+    }
+
+    @JavascriptInterface
     fun selectTasklist(tasklistString: String) {
         val builder = GsonBuilder()
         val gson = builder.create()
