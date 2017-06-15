@@ -13,9 +13,10 @@ import android.view.MenuItem
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import android.widget.ImageView
-import android.widget.TextView
-import com.gmail.uwriegel.tasks.*
+import com.gmail.uwriegel.tasks.AccountChooser
+import com.gmail.uwriegel.tasks.R
+import com.gmail.uwriegel.tasks.Settings
+import com.gmail.uwriegel.tasks.UpdateService
 import com.gmail.uwriegel.tasks.calendar.getCalendarsList
 import com.gmail.uwriegel.tasks.data.query
 import com.gmail.uwriegel.tasks.google.Tasklist
@@ -31,7 +32,6 @@ import pub.devrel.easypermissions.EasyPermissions
 
 
 // TODO: Nach UpdateService Einträge anzeigen
-// TODO: Wenn kein due, dann Jahr 3000 verwenden
 // TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
 // TODO: In die Nav-Liste Kalender übernehmen
 
@@ -278,7 +278,5 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         val REQUEST_GOOGLE_PLAY_SERVICES = 1001
         val MY_PERMISSIONS_REQUEST_READ_CALENDAR = 55
         const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
-        private val MENU_GROUP_TASKLISTS = 200
-        private val MENU_TASKLISTS_START_ID = 2000
     }
 }

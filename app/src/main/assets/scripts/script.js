@@ -5,6 +5,15 @@ var ContentView = (function () {
 
     function insertTasks(tasks) {
         clear()
+
+        var taskWithDue = tasks.find(t => t.due != 0)
+        if (taskWithDue)
+        {
+            var index = tasks.indexOf(taskWithDue)
+            var tasksWithoutDue = tasks.splice(0, index)
+            tasks = tasks.concat(tasksWithoutDue)
+        }
+
         tasks.forEach(t => {
             insertTask(t)
         })
@@ -16,15 +25,11 @@ var ContentView = (function () {
         if (sorted) {
             var lis = Array.from(taskList.getElementsByTagName('li'));
             var liSucc;
-            task.due.setHours(12);
-            task.due.setMinutes(0);
-            task.due.setUTCSeconds(0, 0);
-            if (lis.some(function (li) {
+            if (task.due == 0)
+                taskList.appendChild(li);
+            else if (lis.some(function (li) {
                 liSucc = li;
                 let date = new Date(li.dataset["due"]);
-                date.setHours(12);
-                date.setMinutes(0);
-                date.setUTCSeconds(0, 0);
                 return task.due <= date;
             }))
                 taskList.insertBefore(li, liSucc);
@@ -40,7 +45,7 @@ var ContentView = (function () {
         li.querySelector('.taskNote').innerText = task.notes ? task.notes : null
 
         var due = new Date(task.due)
-        var hasDue = due.getFullYear() < 3000
+        var hasDue = task.due != 0
         if (hasDue) {
             li.querySelector('.taskDayOfWeek').innerText = getDayOfWeek(due);
             li.querySelector('.taskDateOnly').innerText = due.toLocaleDateString("de", { month: "2-digit", day: "2-digit" })
@@ -50,13 +55,7 @@ var ContentView = (function () {
             li.dataset["due"] = due.toISOString()
         var taskSymbol = li.querySelector('.taskSymbol')
         if (hasDue) {
-            due.setHours(12)
-            due.setMinutes(0)
-            due.setUTCSeconds(0, 0)
             var dateToday = new Date()
-            dateToday.setHours(12)
-            dateToday.setMinutes(0)
-            dateToday.setUTCSeconds(0, 0)
             var dayDiff = (due.getTime() - dateToday.getTime()) / (1000 * 3600 * 24)
             if (due <= dateToday) {
                 if (dayDiff > -1 && dayDiff <= 0) {

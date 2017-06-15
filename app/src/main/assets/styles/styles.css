@@ -79,6 +79,7 @@ body {
 }
 
 .taskRow h1 {
+    margin-right: 10px;
     font-size: initial;
     font-weight: normal;
     -webkit-margin-before: 0.3em;
