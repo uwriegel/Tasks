@@ -11,5 +11,6 @@ object TasksTable {
     val KEY_TITLE = "title"
     val KEY_NOTES = "notes"
     val KEY_DUE = "due"
+    val KEY_HAS_DUE = "hasDue"
     val KEY_UPDATED = "updated"
 }

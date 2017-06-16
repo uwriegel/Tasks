@@ -3,9 +3,7 @@ package com.gmail.uwriegel.tasks.webview
 import android.content.Context
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import com.gmail.uwriegel.tasks.data.query
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import com.gmail.uwriegel.tasks.data.queryAllTasks
 
 /**
  * Created by urieg on 09.06.2017.
@@ -13,10 +11,7 @@ import org.jetbrains.anko.uiThread
 class JavascriptInterface(val context: Context, val contentView: WebView) {
     @JavascriptInterface
     fun initialize() {
-        context.doAsync {
-            val tasks = query(context)
-            uiThread { contentView.setTasks(tasks)}
-        }
+        queryAllTasks(context, {contentView.setTasks(it) })
     }
 
     @JavascriptInterface

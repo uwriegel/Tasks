@@ -18,15 +18,13 @@ import com.gmail.uwriegel.tasks.R
 import com.gmail.uwriegel.tasks.Settings
 import com.gmail.uwriegel.tasks.UpdateService
 import com.gmail.uwriegel.tasks.calendar.getCalendarsList
-import com.gmail.uwriegel.tasks.data.query
+import com.gmail.uwriegel.tasks.data.queryAllTasks
 import com.gmail.uwriegel.tasks.google.Tasklist
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
 import com.gmail.uwriegel.tasks.webview.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 
@@ -101,14 +99,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             override fun onTasklistSelected(tasklist: Tasklist) {
                 Settings.instance.setSelectedTasklist(this@MainActivity, tasklist.id)
 
-                doAsync {
-                    val tasks = query(this@MainActivity)
-                    uiThread {
-                        title = tasklist.name
-                        contentView.setTasks(tasks)
-                        drawerLayout.closeDrawer(GravityCompat.START)
-                    }
-                }
+                queryAllTasks(this@MainActivity, {
+                    title = tasklist.name
+                    contentView.setTasks(it)
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                })
 
                 UpdateService.startUpdate(this@MainActivity, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }

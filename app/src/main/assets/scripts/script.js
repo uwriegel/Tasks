@@ -6,14 +6,6 @@ var ContentView = (function () {
     function insertTasks(tasks) {
         clear()
 
-        var taskWithDue = tasks.find(t => t.due != 0)
-        if (taskWithDue)
-        {
-            var index = tasks.indexOf(taskWithDue)
-            var tasksWithoutDue = tasks.splice(0, index)
-            tasks = tasks.concat(tasksWithoutDue)
-        }
-
         tasks.forEach(t => {
             insertTask(t)
         })

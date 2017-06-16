@@ -92,6 +92,7 @@ class TasksContentProvider: ContentProvider() {
                     "${TasksTable.KEY_NOTES} TEXT, " +
                     "${TasksTable.KEY_GOOGLE_ID} TEXT UNIQUE, " +
                     "${TasksTable.KEY_DUE} INTEGER, " +
+                    "${TasksTable.KEY_HAS_DUE} INTEGER, " +
                     "${TasksTable.KEY_UPDATED} INTEGER);")
         }
 

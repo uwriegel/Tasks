@@ -78,6 +78,7 @@ class UpdateService : IntentService("UpdateService") {
             values.put(TasksTable.KEY_TITLE, task.title)
             values.put(TasksTable.KEY_NOTES, task.notes)
             values.put(TasksTable.KEY_DUE, task.due?.value)
+            values.put(TasksTable.KEY_HAS_DUE, if (task.due != null) 1 else 0)
             values.put(TasksTable.KEY_UPDATED, task.updated.value)
             Log.d("Affe", "Eintrag: ${task.title}")
             contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
