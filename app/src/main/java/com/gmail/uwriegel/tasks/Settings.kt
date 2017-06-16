@@ -38,6 +38,25 @@ class Settings private constructor() {
         editor.apply()
     }
 
+    fun setCalendarsList(context: Context, calendarsList: List<String>) {
+        val sharedPreferences = getPreferences(context)
+        val editor = sharedPreferences.edit()
+        val calendarsListString = Gson().toJson(calendarsList)
+        editor.putString(PREF_CALENDARS_LIST, calendarsListString)
+        editor.apply()
+    }
+
+    fun getCalendarsList(context: Context) : List<String> {
+        val settings = getPreferences(context).getString(PREF_CALENDARS_LIST, null)
+        if (settings != null) {
+            val builder = GsonBuilder()
+            val gson = builder.create()
+            val idType = object : TypeToken<List<String>>() {}.type
+            return gson.fromJson<List<String>>(settings, idType)
+        } else
+            return emptyList()
+    }
+
     fun getTasklists(context: Context): Iterable<Tasklist> {
         val settings = getPreferences(context).getString(PREF_TASKLISTS, null)
         if (settings != null) {
@@ -95,6 +114,7 @@ class Settings private constructor() {
         private val PREF_ACCOUNT = "googleAccount"
         private val PREF_SELECTED_TASKLIST = "selectedTasklist"
         private val PREF_AVATAR_DOWNLOADED = "avatarDownloaded"
+        private val PREF_CALENDARS_LIST = "calendarsList"
         private val PREF_TASKLISTS = "tasklists"
     }
 }

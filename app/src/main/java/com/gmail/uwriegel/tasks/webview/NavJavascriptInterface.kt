@@ -7,6 +7,7 @@ import android.webkit.WebView
 import com.gmail.uwriegel.tasks.Settings
 import com.gmail.uwriegel.tasks.google.Tasklist
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -41,6 +42,15 @@ class NavJavascriptInterface(val context: Context, val navView: WebView, val cal
         val gson = builder.create()
         val tasklist = gson.fromJson<Tasklist>(tasklistString, Tasklist::class.java)
         callback.onTasklistSelected(tasklist)
+    }
+
+    @JavascriptInterface
+    fun selectCalendarsList(CalendarsListString: String) {
+        val builder = GsonBuilder()
+        val gson = builder.create()
+        val listsType = object : TypeToken<List<String>>() {}.type
+        val calendarsList = gson.fromJson<List<String>>(CalendarsListString, listsType)
+        Settings.instance.setCalendarsList(context, calendarsList)
     }
 }
 

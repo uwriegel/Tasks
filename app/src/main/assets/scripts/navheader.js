@@ -43,18 +43,23 @@ var NavView = (function () {
         var lis = calendarLists.map(calendarList => {
             var li = calendarListFactory.cloneNode(true);
             li.dataset["id"] = calendarList.id;
-//            if (ids.find(id => id == calendarList.id))
-//                li.classList.add("calendarSelected");
             var name = li.querySelector('.calendarName');
             name.innerText = calendarList.name;
             var account = li.querySelector('.calendarAccount');
             account.innerText = calendarList.account;
+            if (calendarList.isSelected)
+                li.classList.add("calendarSelected");
             li.onclick = evt => {
                 if (!li.classList.contains("calendarSelected"))
                     li.classList.add("calendarSelected");
                 else
                     li.classList.remove("calendarSelected");
-                let lis = Array.from(calendarUl.querySelectorAll('li'));
+                let lis = Array.from(calendarslistUl.querySelectorAll('li.calendarSelected'));
+                let calendarIds = lis.map(li => {
+                    return li.dataset['id']
+                })
+                Native.doHapticFeedback()
+                Native.selectCalendarsList(JSON.stringify(calendarIds))
             };
             return li;
         }).forEach(li => {
