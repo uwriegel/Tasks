@@ -11,15 +11,24 @@ import org.jetbrains.anko.uiThread
 import java.util.*
 
 fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>)->Unit) {
-    context.doAsync {
-        val tasks = queryTasks(context)
-        uiThread { onFinished(tasks) }
-    }
+    var tasks: List<Task>? = null
+    var calendarItems: List<CalendarItem>? = null
+
     val calendarsList = Settings.instance.getCalendarsList(context)
     if (calendarsList.count() != 0)
         context.doAsync {
-            queryCalendarItems(context, calendarsList)
+            calendarItems = queryCalendarItems(context, calendarsList)
+            if (tasks != null)
+                uiThread { onFinished(tasks!!) }
         }
+    else
+        calendarItems = ArrayList()
+
+    context.doAsync {
+        tasks = queryTasks(context)
+        if (calendarItems != null)
+            uiThread { onFinished(tasks!!) }
+    }
 }
 
 /**
@@ -47,7 +56,7 @@ fun queryTasks(context: Context): List<Task> {
     return toTaskList()
 }
 
-fun queryCalendarItems(context: Context, calendarIds: List<String>) {
+fun queryCalendarItems(context: Context, calendarIds: List<String>): List<CalendarItem> {
     val cal = Calendar.getInstance()
     cal.add(Calendar.DAY_OF_MONTH, -1)
     val yesterday = cal.timeInMillis
@@ -68,15 +77,14 @@ fun queryCalendarItems(context: Context, calendarIds: List<String>) {
             CalendarContract.Instances._ID)// 5
 
     val cursor = context.contentResolver.query(eventUri, INSTANCE_PROJECTION, selection, calendarIds.toTypedArray(), null)
-
+    val list = ArrayList<CalendarItem>()
     while (cursor.moveToNext()) {
-        val title = cursor.getString(0)
-        val begin = cursor.getLong(2)
-        val eventId = cursor.getString(4)
-
-        val date = Date(begin)
-        val calendar = Calendar.getInstance()
+        var item = CalendarItem(cursor.getString(0),
+                cursor.getString(4),
+                cursor.getLong(2))
+        list.add(item)
     }
+    return list.toList()
 }
 
 
