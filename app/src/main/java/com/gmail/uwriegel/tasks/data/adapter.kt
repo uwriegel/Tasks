@@ -15,9 +15,11 @@ fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>)->Unit) {
         val tasks = queryTasks(context)
         uiThread { onFinished(tasks) }
     }
-    context.doAsync {
-        //queryCalendarItems(context)
-    }
+    val calendarsList = Settings.instance.getCalendarsList(context)
+    if (calendarsList.count() != 0)
+        context.doAsync {
+            queryCalendarItems(context, calendarsList)
+        }
 }
 
 /**
@@ -45,7 +47,7 @@ fun queryTasks(context: Context): List<Task> {
     return toTaskList()
 }
 
-fun queryCalendarItems(context: Context, calendarId: String) {
+fun queryCalendarItems(context: Context, calendarIds: List<String>) {
     val cal = Calendar.getInstance()
     cal.add(Calendar.DAY_OF_MONTH, -1)
     val yesterday = cal.timeInMillis
@@ -56,7 +58,8 @@ fun queryCalendarItems(context: Context, calendarId: String) {
     ContentUris.appendId(eventsUriBuilder, week)
     val eventUri = eventsUriBuilder.build()
 
-    val selection = "(${CalendarContract.Events.CALENDAR_ID} = $calendarId)"
+    var calIds = Collections.nCopies(calendarIds.count(), "${CalendarContract.Events.CALENDAR_ID} = ?")
+    var selection = calIds.reduce{total, next -> "$total OR $next"}
     val INSTANCE_PROJECTION = arrayOf(CalendarContract.Instances.TITLE, // 0
             CalendarContract.Instances.DESCRIPTION, // 1
             CalendarContract.Instances.BEGIN, // 2
@@ -64,7 +67,7 @@ fun queryCalendarItems(context: Context, calendarId: String) {
             CalendarContract.Instances.EVENT_ID, // 4
             CalendarContract.Instances._ID)// 5
 
-    val cursor = context.contentResolver.query(eventUri, INSTANCE_PROJECTION, selection, null, null)
+    val cursor = context.contentResolver.query(eventUri, INSTANCE_PROJECTION, selection, calendarIds.toTypedArray(), null)
 
     while (cursor.moveToNext()) {
         val title = cursor.getString(0)
