@@ -64,8 +64,6 @@ class UpdateService : IntentService("UpdateService") {
     }
 
     private fun insertTask(taskTableId: String, task: Task) {
-        val contentResolver = contentResolver
-
         // Construct a where clause to make sure we don’t already have this
         // earthquake in the provider.
         val where = "${TasksTable.KEY_GOOGLE_ID} = '${task.id}'"
@@ -80,7 +78,6 @@ class UpdateService : IntentService("UpdateService") {
             values.put(TasksTable.KEY_DUE, task.due?.value)
             values.put(TasksTable.KEY_HAS_DUE, if (task.due != null) 1 else 0)
             values.put(TasksTable.KEY_UPDATED, task.updated.value)
-            Log.d("Affe", "Eintrag: ${task.title}")
             contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
         }
         query.close()

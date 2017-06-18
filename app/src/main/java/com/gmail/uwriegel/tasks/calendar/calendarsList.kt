@@ -44,7 +44,6 @@ fun MainActivity.getCalendarsList() {
             // app-defined int constant. The callback method gets the
             // result of the request.
         }
-        // TODO: Consider calling
         //    ActivityCompat#requestPermissions
         // here to request the missing permissions, and then overriding
         //   public void onRequestPermissionsResult(int requestCode, String[] permissions,

@@ -34,8 +34,11 @@ import pub.devrel.easypermissions.EasyPermissions
 
 
 // TODO: Nach UpdateService Einträge anzeigen
-// TODO: Letzter NavHeader-Menüeintrag: Aktualisieren, nur dann werden die Tasklisten neu geholt
-// TODO: In die Nav-Liste Kalender übernehmen
+// TODO: Gelöschte entfernen aus der Datenbank, anschließend aus der Anzeige
+// TODO: Geänderte ändern, anschließend in der Anzeige
+// TODO: Swipe to dismiss mit Update und redo
+// TODO: Neuen Task anlegen (Activity)
+// TODO: Task ändern mit Activity
 
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     override fun onCreate(savedInstanceState: Bundle?) {
