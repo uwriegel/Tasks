@@ -1,8 +1,6 @@
 
-function setTasks(tasksString) {
-    //Native.affe(tasksString)
-
-    var jason = decodeURIComponent(atob(tasksString))
-    var tasks =  JSON.parse(jason)
-    ContentView.insertTasks(tasks)
+function setTasks(itemsString) {
+    var jason = decodeURIComponent(atob(itemsString))
+    var items =  JSON.parse(jason)
+    ContentView.insertTasks(items)
 }

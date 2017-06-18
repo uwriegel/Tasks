@@ -99,9 +99,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             override fun onTasklistSelected(tasklist: Tasklist) {
                 Settings.instance.setSelectedTasklist(this@MainActivity, tasklist.id)
 
-                queryAllTasks(this@MainActivity, {
+                queryAllTasks(this@MainActivity, { tasks, calendarItems ->
                     title = tasklist.name
-                    contentView.setTasks(it)
+                    contentView.setTasks(tasks, calendarItems)
                     drawerLayout.closeDrawer(GravityCompat.START)
                 })
 

@@ -11,13 +11,7 @@ import com.gmail.uwriegel.tasks.data.queryAllTasks
 class JavascriptInterface(val context: Context, val contentView: WebView) {
     @JavascriptInterface
     fun initialize() {
-        queryAllTasks(context, {contentView.setTasks(it) })
-    }
-
-    @JavascriptInterface
-    fun affe(schrott: String) {
-        val aff = schrott
-        val a = aff
+        queryAllTasks(context, {tasks, calendarItems -> contentView.setTasks(tasks, calendarItems) })
     }
 }
 

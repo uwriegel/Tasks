@@ -10,7 +10,7 @@ import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.util.*
 
-fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>)->Unit) {
+fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>, calendarItems: List<CalendarItem>)->Unit) {
     var tasks: List<Task>? = null
     var calendarItems: List<CalendarItem>? = null
 
@@ -19,7 +19,7 @@ fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>)->Unit) {
         context.doAsync {
             calendarItems = queryCalendarItems(context, calendarsList)
             if (tasks != null)
-                uiThread { onFinished(tasks!!) }
+                uiThread { onFinished(tasks!!, calendarItems!!) }
         }
     else
         calendarItems = ArrayList()
@@ -27,7 +27,7 @@ fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>)->Unit) {
     context.doAsync {
         tasks = queryTasks(context)
         if (calendarItems != null)
-            uiThread { onFinished(tasks!!) }
+            uiThread { onFinished(tasks!!, calendarItems!!) }
     }
 }
 

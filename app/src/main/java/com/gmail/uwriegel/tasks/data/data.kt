@@ -6,3 +6,5 @@ package com.gmail.uwriegel.tasks.data
 data class Task(val title: String, val notes: String, val id: Long, val due: Long)
 
 data class CalendarItem(val title: String, val id: String, val due: Long)
+
+data class Items(val tasks: List<Task>, val calendarItems: List<CalendarItem>)
