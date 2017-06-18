@@ -64,6 +64,7 @@ var ContentView = (function () {
             li.querySelector('.taskDateOnly').innerText = due.toLocaleDateString("de", { month: "2-digit", day: "2-digit" })
         }
 
+        li.dataset["id"] = task.id
         if (hasDue)
             li.dataset["due"] = due.toISOString()
         var taskSymbol = li.querySelector('.taskSymbol')
@@ -99,7 +100,7 @@ var ContentView = (function () {
         li.querySelector('.taskDayOfWeek').innerText = getDayOfWeek(due);
         li.querySelector('.taskDateOnly').innerText = due.toLocaleDateString("de", { month: "2-digit", day: "2-digit" });
         var dateToday = new Date();
-        li.dataset["eventId"] = calendarItem.Id;
+        li.dataset["eventId"] = calendarItem.id;
         li.dataset["due"] = due.toISOString();
         var taskSymbol = li.querySelector('.taskSymbol');
         var i = taskSymbol.querySelector("i");
@@ -129,9 +130,77 @@ var ContentView = (function () {
         taskList.innerHTML = '';
     }
 
+    function addClick() {
+        var inClick;
+        taskList.onclick = evt => {
+            if (inClick)
+                return
+            var li = evt.target.closest('li')
+            if (li.classList.contains('undoContainer'))
+                return
+            inClick = true
+            Native.doHapticFeedback()
+            var canvas = document.createElement("canvas")
+            canvas.width = li.offsetWidth
+            canvas.height = li.offsetHeight
+            var context = canvas.getContext("2d")
+            var lastindex = 1
+            var dateNow = new Date().getTime()
+            window.requestAnimationFrame(function resizeChecking() {
+                var date = new Date().getTime()
+                var index = Math.round((date - dateNow) / 40)
+                if (index == lastindex) {
+                    window.requestAnimationFrame(resizeChecking)
+                    return
+                }
+                lastindex = index
+                if (!drawCircle(index))
+                    return
+                window.requestAnimationFrame(resizeChecking);
+            })
+            var x = evt.clientX
+            var y = evt.pageY - li.offsetTop + taskList.scrollTop
+            var centerX = x
+            var centerY = y
+            var actionExecuted
+            function drawCircle(index) {
+                var alpha = index / 10
+                if (!actionExecuted && alpha > 0.6) {
+                    var key = li.dataset["id"]
+                    if (key) {
+//                        dialog = TaskDialog(key)
+//                        actionExecuted = true
+                    }
+                    else {
+                        alert(li.dataset["eventId"])
+//                        var eventId = li.dataset["eventId"]
+//                        Native.showEvent(eventId)
+                        actionExecuted = true
+                    }
+                }
+                if (alpha > 1) {
+                    inClick = false
+                    li.style.background = ""
+                    return false
+                }
+                var radius = (canvas.height / 2 - 6) + alpha * (canvas.width / 2 - (canvas.height / 2 - 6))
+                context.clearRect(0, 0, canvas.width, canvas.height)
+                context.beginPath()
+                context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false)
+                context.fillStyle = '#efefff'
+                context.globalAlpha = 1 - alpha
+                context.fill()
+                var url = canvas.toDataURL()
+                li.style.background = `url(${url})`
+                return true
+            }
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
-        taskList = document.getElementById("tasks");
-        itemFactory = document.getElementById('taskTemplate').content.querySelector('li');
+        taskList = document.getElementById("tasks")
+        itemFactory = document.getElementById('taskTemplate').content.querySelector('li')
+        addClick()
         Native.initialize()
     })
 
