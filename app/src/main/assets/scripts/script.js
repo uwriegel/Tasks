@@ -172,9 +172,7 @@ var ContentView = (function () {
 //                        actionExecuted = true
                     }
                     else {
-                        alert(li.dataset["eventId"])
-//                        var eventId = li.dataset["eventId"]
-//                        Native.showEvent(eventId)
+                        Native.showEvent(li.dataset["eventId"])
                         actionExecuted = true
                     }
                 }

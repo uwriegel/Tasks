@@ -1,8 +1,10 @@
 package com.gmail.uwriegel.tasks.activities
 
 import android.app.Activity
+import android.content.ContentUris
 import android.content.Intent
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
@@ -47,7 +49,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         webSettings.domStorageEnabled = true
         WebView.setWebContentsDebuggingEnabled(true)
         contentView.setWebChromeClient(WebChromeClient())
-        contentView.addJavascriptInterface(JavascriptInterface(this, contentView), "Native")
+        contentView.addJavascriptInterface(JavascriptInterface(this, contentView, object: Callbacks {
+            override fun showEvent(eventId: String) {
+                val id = java.lang.Long.parseLong(eventId)
+                val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, id)
+                val intent = Intent(Intent.ACTION_VIEW).setData(uri)
+                startActivity(intent)
+            }
+        }), "Native")
         contentView.isHapticFeedbackEnabled = true
         contentView.loadUrl("file:///android_asset/index.html")
 

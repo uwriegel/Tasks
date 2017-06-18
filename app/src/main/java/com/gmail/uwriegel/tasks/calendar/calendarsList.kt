@@ -17,8 +17,6 @@ import org.json.JSONObject
  * Created by urieg on 11.06.2017.
  */
 fun MainActivity.getCalendarsList() {
-    val contentResolver = this.contentResolver
-
     val uri = CalendarContract.Calendars.CONTENT_URI
     val projection = arrayOf(
             CalendarContract.Calendars._ID,
@@ -32,7 +30,7 @@ fun MainActivity.getCalendarsList() {
             this.runOnUiThread(Runnable {
                 val builder = AlertDialog.Builder(this)
                 builder.setMessage(this.getString(R.string.permission_on_calendars_required))
-                builder.setPositiveButton("Ok") { dialog, id -> }
+                builder.setPositiveButton("Ok") { _, _ -> }
                 builder.create()
                 builder.show()
             })
@@ -62,10 +60,10 @@ fun MainActivity.getCalendarsList() {
 
     while (calendarCursor!!.moveToNext()) {
         val json = JSONObject()
-        json.put("name", calendarCursor!!.getString(2))
-        json.put("id", calendarCursor!!.getString(0))
-        json.put("isSelected", selectedCalendars.contains(calendarCursor!!.getString(0)))
-        json.put("account", calendarCursor!!.getString(1))
+        json.put("name", calendarCursor.getString(2))
+        json.put("id", calendarCursor.getString(0))
+        json.put("isSelected", selectedCalendars.contains(calendarCursor.getString(0)))
+        json.put("account", calendarCursor.getString(1))
         jsonArray.put(json)
     }
     val json = jsonArray.toString()

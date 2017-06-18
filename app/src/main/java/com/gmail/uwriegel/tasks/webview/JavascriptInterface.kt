@@ -11,18 +11,12 @@ import org.jetbrains.anko.uiThread
 /**
  * Created by urieg on 09.06.2017.
  */
-class JavascriptInterface(val context: Context, val contentView: WebView) {
+class JavascriptInterface(val context: Context, val contentView: WebView, val callbacks: Callbacks) {
     @JavascriptInterface
-    fun initialize() {
-        queryAllTasks(context, {tasks, calendarItems -> contentView.setTasks(tasks, calendarItems) })
-    }
-
+    fun initialize() = queryAllTasks(context, {tasks, calendarItems -> contentView.setTasks(tasks, calendarItems) })
     @JavascriptInterface
-    fun doHapticFeedback() {
-        context.doAsync {
-            uiThread { contentView.playSoundEffect(SoundEffectConstants.CLICK) }
-        }
-    }
-
+    fun doHapticFeedback() = context.doAsync { uiThread { contentView.playSoundEffect(SoundEffectConstants.CLICK) } }
+    @JavascriptInterface
+    fun showEvent(id: String) = context.doAsync { uiThread { callbacks.showEvent(id) } }
 }
 
