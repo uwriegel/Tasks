@@ -5,6 +5,7 @@ import android.view.SoundEffectConstants
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import com.gmail.uwriegel.tasks.Settings
+import com.gmail.uwriegel.tasks.data.queryAllTasks
 import com.gmail.uwriegel.tasks.google.Tasklist
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -51,6 +52,7 @@ class NavJavascriptInterface(val context: Context, val navView: WebView, val cal
         val listsType = object : TypeToken<List<String>>() {}.type
         val calendarsList = gson.fromJson<List<String>>(CalendarsListString, listsType)
         Settings.instance.setCalendarsList(context, calendarsList)
+        queryAllTasks(context, { t, c -> callback.onSetItems(t, c)})
     }
 }
 

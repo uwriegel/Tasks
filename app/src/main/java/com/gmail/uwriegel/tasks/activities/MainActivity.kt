@@ -18,6 +18,8 @@ import com.gmail.uwriegel.tasks.R
 import com.gmail.uwriegel.tasks.Settings
 import com.gmail.uwriegel.tasks.UpdateService
 import com.gmail.uwriegel.tasks.calendar.getCalendarsList
+import com.gmail.uwriegel.tasks.data.CalendarItem
+import com.gmail.uwriegel.tasks.data.Task
 import com.gmail.uwriegel.tasks.data.queryAllTasks
 import com.gmail.uwriegel.tasks.google.Tasklist
 import com.gmail.uwriegel.tasks.google.TasklistsUpdater
@@ -110,6 +112,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
             override fun chooseAccount() {
                 this@MainActivity.chooseAccount()
+            }
+
+            override fun onSetItems(tasks: List<Task>, calendarItems: List<CalendarItem>) {
+                contentView.setTasks(tasks, calendarItems)
             }
         }), "Native")
         navView.isHapticFeedbackEnabled = true
