@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.util.Log
+import com.gmail.uwriegel.tasks.activities.MainActivity
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import com.gmail.uwriegel.tasks.google.createCredential
@@ -57,6 +58,12 @@ class UpdateService : IntentService("UpdateService") {
             val tasks = result.items
             for (task in tasks)
                 insertTask(selectedTasklist, task)
+
+            val intent = Intent()
+            intent.action = MainActivity.BROADCAST_RECEIVER
+            intent.putExtra("data", "Notice me senpai!")
+            sendBroadcast(intent)
+
         } catch (e: Exception) {
             e.printStackTrace()
         }

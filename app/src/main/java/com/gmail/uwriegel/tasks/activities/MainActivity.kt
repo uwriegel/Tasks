@@ -1,7 +1,9 @@
 package com.gmail.uwriegel.tasks.activities
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.CalendarContract
@@ -31,6 +33,10 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
+import android.net.ConnectivityManager
+import android.content.IntentFilter
+
+
 
 
 // TODO: Nach UpdateService Einträge anzeigen
@@ -137,6 +143,54 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
         else
             drawerLayout.openDrawer(navigationView)
+
+        var broadcastReceiver = object : BroadcastReceiver() {
+            /**
+             * This method is called when the BroadcastReceiver is receiving an Intent
+             * broadcast.  During this time you can use the other methods on
+             * BroadcastReceiver to view/modify the current result values.  This method
+             * is always called within the main thread of its process, unless you
+             * explicitly asked for it to be scheduled on a different thread using
+             * [android.content.Context.registerReceiver]. When it runs on the main
+             * thread you should
+             * never perform long-running operations in it (there is a timeout of
+             * 10 seconds that the system allows before considering the receiver to
+             * be blocked and a candidate to be killed). You cannot launch a popup dialog
+             * in your implementation of onReceive().
+
+             *
+             * **If this BroadcastReceiver was launched through a &lt;receiver&gt; tag,
+             * then the object is no longer alive after returning from this
+             * function.**  This means you should not perform any operations that
+             * return a result to you asynchronously -- in particular, for interacting
+             * with services, you should use
+             * [Context.startService] instead of
+             * [Context.bindService].  If you wish
+             * to interact with a service that is already running, you can use
+             * [.peekService].
+
+             *
+             * The Intent filters used in [android.content.Context.registerReceiver]
+             * and in application manifests are *not* guaranteed to be exclusive. They
+             * are hints to the operating system about how to find suitable recipients. It is
+             * possible for senders to force delivery to specific recipients, bypassing filter
+             * resolution.  For this reason, [onReceive()][.onReceive]
+             * implementations should respond only to known actions, ignoring any unexpected
+             * Intents that they may receive.
+
+             * @param context The Context in which the receiver is running.
+             * *
+             * @param intent The Intent being received.
+             */
+            override fun onReceive(context: Context?, intent: Intent?) {
+                var affe = 9
+                var aff = affe
+            }
+        }
+
+        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        filter.addAction(BROADCAST_RECEIVER)
+        this.registerReceiver(broadcastReceiver, filter)
     }
 
     /**
@@ -291,5 +345,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         val REQUEST_GOOGLE_PLAY_SERVICES = 1001
         val MY_PERMISSIONS_REQUEST_READ_CALENDAR = 55
         const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
+        val BROADCAST_RECEIVER = "com.gmail.uwriegel.tasks.BROADCAST_RECEIVER"
     }
 }
