@@ -38,7 +38,17 @@ class UpdateService : IntentService("UpdateService") {
     }
 
     private fun handleActionUpdate(accountName: String, selectedTasklist: String) {
+
+        fun broadcast(type: String) {
+            val intent = Intent()
+            intent.action = MainActivity.BROADCAST_RECEIVER
+            intent.putExtra(MainActivity.BROADCAST_TYPE, type)
+            sendBroadcast(intent)
+        }
+
         try {
+            broadcast(MainActivity.BROADCAST_START_UPDATE)
+
             val tasksCredential = createCredential(this, accountName)
             val transport = AndroidHttp.newCompatibleTransport()
             val jsonFactory = JacksonFactory.getDefaultInstance()
@@ -59,15 +69,11 @@ class UpdateService : IntentService("UpdateService") {
             for (task in tasks)
                 insertTask(selectedTasklist, task)
 
-            val intent = Intent()
-            intent.action = MainActivity.BROADCAST_RECEIVER
-            intent.putExtra("data", "Notice me senpai!")
-            sendBroadcast(intent)
-
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            broadcast(MainActivity.BROADCAST_UPDATED)
         }
-
     }
 
     private fun insertTask(taskTableId: String, task: Task) {

@@ -17,10 +17,6 @@ import android.view.MenuItem
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import com.gmail.uwriegel.tasks.AccountChooser
-import com.gmail.uwriegel.tasks.R
-import com.gmail.uwriegel.tasks.Settings
-import com.gmail.uwriegel.tasks.UpdateService
 import com.gmail.uwriegel.tasks.calendar.getCalendarsList
 import com.gmail.uwriegel.tasks.data.CalendarItem
 import com.gmail.uwriegel.tasks.data.Task
@@ -35,8 +31,7 @@ import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import android.net.ConnectivityManager
 import android.content.IntentFilter
-
-
+import com.gmail.uwriegel.tasks.*
 
 
 // TODO: Nach UpdateService Einträge anzeigen
@@ -70,17 +65,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         contentView.loadUrl("file:///android_asset/index.html")
 
         fab.setOnClickListener {
-            val swipeRefreshListner = SwipeRefreshLayout.OnRefreshListener {
-                Log.i(TAG, "onRefresh called from SwipeRefreshLayout")
-                // This method performs the actual data-refresh operation.
-                // The method calls setRefreshing(false) when it's finished.
-            }
-
-            swipeRefresh.post {
-                swipeRefresh.isRefreshing = true
-                // directly call onRefresh() method
-                swipeRefreshListner.onRefresh()
-            }
                 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 //                        .setAction("Action", null).show();
         }
@@ -183,8 +167,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
              * @param intent The Intent being received.
              */
             override fun onReceive(context: Context?, intent: Intent?) {
-                var affe = 9
-                var aff = affe
+                val type = intent?.getStringExtra(BROADCAST_TYPE)
+                when (type) {
+                    BROADCAST_START_UPDATE -> this@MainActivity.showUpdate(true)
+                    BROADCAST_UPDATED -> this@MainActivity.showUpdate(false)
+                }
             }
         }
 
@@ -277,6 +264,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
+    private fun showUpdate(show: Boolean) {
+        val swipeRefreshListner = SwipeRefreshLayout.OnRefreshListener {
+            Log.i(TAG, "onRefresh called from SwipeRefreshLayout")
+            // This method performs the actual data-refresh operation.
+            // The method calls setRefreshing(false) when it's finished.
+        }
+
+        swipeRefresh.post {
+            swipeRefresh.isRefreshing = show
+            // directly call onRefresh() method
+            swipeRefreshListner.onRefresh()
+        }
+    }
     private fun chooseAccount() { accountChooser = AccountChooser(this) }
 
     /**
@@ -346,5 +346,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         val MY_PERMISSIONS_REQUEST_READ_CALENDAR = 55
         const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
         val BROADCAST_RECEIVER = "com.gmail.uwriegel.tasks.BROADCAST_RECEIVER"
+        val BROADCAST_TYPE = "type"
+        val BROADCAST_START_UPDATE = "start"
+        val BROADCAST_UPDATED = "updated"
     }
 }
