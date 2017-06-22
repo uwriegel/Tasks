@@ -170,7 +170,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 val type = intent?.getStringExtra(BROADCAST_TYPE)
                 when (type) {
                     BROADCAST_START_UPDATE -> this@MainActivity.showUpdate(true)
-                    BROADCAST_UPDATED -> this@MainActivity.showUpdate(false)
+                    BROADCAST_UPDATED -> queryAllTasks(this@MainActivity, { tasks, calendarItems ->
+                            contentView.setTasks(tasks, calendarItems)
+                            this@MainActivity.showUpdate(false)
+                    })
                 }
             }
         }
