@@ -7,6 +7,7 @@ import com.gmail.uwriegel.tasks.json.GoogleAccount
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import java.util.*
 
 /**
  * Created by urieg on 06.05.2017.
@@ -55,6 +56,18 @@ class Settings private constructor() {
             return gson.fromJson<List<String>>(settings, idType)
         } else
             return emptyList()
+    }
+
+    fun setUpdateTime(context: Context, updateTime: Date) {
+        val sharedPreferences = getPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putLong(PREF_UPDATE_TIME, updateTime.time)
+        editor.apply()
+    }
+
+    fun getUpdateTime(context: Context) : Date {
+        val date = getPreferences(context).getLong(PREF_UPDATE_TIME, 0)
+        return Date(date)
     }
 
     fun getTasklists(context: Context): Iterable<Tasklist> {
@@ -116,5 +129,6 @@ class Settings private constructor() {
         private val PREF_AVATAR_DOWNLOADED = "avatarDownloaded"
         private val PREF_CALENDARS_LIST = "calendarsList"
         private val PREF_TASKLISTS = "tasklists"
+        private val PREF_UPDATE_TIME = "updateTime"
     }
 }

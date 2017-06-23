@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         else
             drawerLayout.openDrawer(navigationView)
 
-        var broadcastReceiver = object : BroadcastReceiver() {
+        val broadcastReceiver = object : BroadcastReceiver() {
             /**
              * This method is called when the BroadcastReceiver is receiving an Intent
              * broadcast.  During this time you can use the other methods on

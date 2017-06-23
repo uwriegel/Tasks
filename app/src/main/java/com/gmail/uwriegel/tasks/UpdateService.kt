@@ -14,6 +14,9 @@ import com.gmail.uwriegel.tasks.google.createCredential
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.tasks.model.Task
+import com.google.api.services.tasks.model.Tasks
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * An [IntentService] subclass for handling asynchronous task requests in
@@ -39,6 +42,8 @@ class UpdateService : IntentService("UpdateService") {
 
     private fun handleActionUpdate(accountName: String, selectedTasklist: String) {
 
+        val dateNow = Date()
+
         fun broadcast(type: String) {
             val intent = Intent()
             intent.action = MainActivity.BROADCAST_RECEIVER
@@ -55,17 +60,32 @@ class UpdateService : IntentService("UpdateService") {
             val service = com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential)
                     .setApplicationName("Aufgaben")
                     .build()
-            val result = service.tasks().list(selectedTasklist)
-                    .setFields("items(id,title,notes,due,updated),nextPageToken")
-                    //.setFields("items(id,title,notes,due,updated,status)")
-                    //                    .setShowCompleted(true)
-                    //.setPageToken()
 
-                    .setShowCompleted(false)
-                    //.setUpdatedMin("2017-05-01T00:00:00.000Z")
-                    .execute()
+            val lastUpdated = Settings.instance.getUpdateTime(applicationContext)
+
+            fun getTasks(pageToken: String?): Tasks {
+                var query = service.tasks().list(selectedTasklist)
+                        .setFields("items(id,title,notes,due,completed,updated),nextPageToken")
+                        //.setFields("items(id,title,notes,due,updated,status)")
+                        .setShowCompleted(true)
+                        .setUpdatedMin(lastUpdated.getFormattedString())
+                if (pageToken != null)
+                    query = query.setPageToken(pageToken)
+                return query.execute()
+            }
+
+            var result = getTasks(null)
+            if (result.items == null)
+                return;
+            val items = result.items
+            while (result.nextPageToken != null) {
+                result = getTasks(result.nextPageToken)
+                items.plusAssign(result.items)
+            }
+
             //.setShowCompleted(false).setUpdatedMin("2017-02-01T00:00:00.000Z").execute();
-            val tasks = result.items
+            val tasks = items.filter { it.completed == null }
+            val tasksCompleted = items.filter { it.completed != null }
             for (task in tasks)
                 insertTask(selectedTasklist, task)
 
@@ -73,6 +93,7 @@ class UpdateService : IntentService("UpdateService") {
             e.printStackTrace()
         } finally {
             broadcast(MainActivity.BROADCAST_UPDATED)
+            Settings.instance.setUpdateTime(applicationContext, dateNow)
         }
     }
 
