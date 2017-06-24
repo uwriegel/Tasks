@@ -2,6 +2,7 @@
 var ContentView = (function () {
     var taskList
     var itemFactory
+    const DRAWER_TOUCH_MARGIN = 20;
 
     function insertTasks(items) {
         clear()
@@ -195,9 +196,121 @@ var ContentView = (function () {
         }
     }
 
+    function addDismissHandling() {
+        taskList.addEventListener('touchstart', evt => {
+            if (evt.touches.length != 1)
+                return
+            var initialX = evt.touches[0].clientX
+            var initialY = evt.touches[0].clientY
+            if (initialX <= DRAWER_TOUCH_MARGIN)
+                return
+            var moving
+            var targetRow = evt.touches[0].target.closest('.taskRow')
+            if (!targetRow)
+                return
+            var li = (targetRow.closest('li'))
+            var diff
+            var lastDiff
+            taskList.addEventListener('touchmove', touchmove, true)
+            taskList.addEventListener('touchend', touchend, true)
+            function touchmove(evt) {
+                if (diff)
+                    lastDiff = diff
+                diff = evt.touches[0].clientX - initialX
+                if (!moving) {
+                    moving = true
+                    var diffY = Math.abs(evt.touches[0].clientY - initialY)
+                    if (diff < 10 || Math.abs(diff) < diffY * 2) {
+                        taskList.removeEventListener('touchmove', touchmove, true)
+                        taskList.removeEventListener('touchend', touchend, true)
+                        return
+                    }
+                    targetRow.style.backgroundColor = "white"
+                    li.style.backgroundColor = "darkcyan"
+                }
+                if (diff >= 0)
+                    targetRow.style.left = diff + 'px'
+                evt.preventDefault()
+                evt.stopPropagation()
+            }
+            function touchend(evt) {
+                if (!moving)
+                    return
+                taskList.removeEventListener('touchmove', touchmove, true)
+                taskList.removeEventListener('touchend', touchend, true)
+                targetRow.style.transition = 'left 0.3s'
+                var dismiss = diff - lastDiff > 15 || (diff - lastDiff > 0 && diff > (window.innerWidth / 2))
+                var left = dismiss ? window.innerWidth : 0
+                if (dismiss)
+                    li.style.height = `${li.offsetHeight}px`
+                targetRow.style.left = `${left}px`
+                targetRow.addEventListener("transitionend", function transitionend(evt) {
+                    setTimeout(() => {
+                        targetRow.removeEventListener("transitionend", transitionend)
+                        if (dismiss) {
+                            var dismissUndo = (dismissUndoFactory.cloneNode(true))
+                            li.removeChild(targetRow)
+                            li.classList.add("undoContainer")
+                            li.appendChild(dismissUndo)
+                            var undoTimer
+                            dismissUndo.onclick = () => {
+//                                    return __awaiter(this, void 0, void 0, function* () {
+//                                        try {
+//                                            yield Database.undoCloseTask(li.dataset["key"]);
+//                                            clearTimeout(undoTimer);
+//                                            li.removeChild(dismissUndo);
+//                                            li.classList.remove("undoContainer");
+//                                            li.appendChild(targetRow);
+//                                            targetRow.style.transition = 'left 0.3s';
+//                                            targetRow.addEventListener("transitionend", function transitionend(evt) {
+//                                                targetRow.style.transition = '';
+//                                            });
+//                                            setTimeout(function () {
+//                                                targetRow.style.left = '0px';
+//                                            }, 20);
+//                                        }
+//                                        catch (error) {
+//                                            var dbErr = error;
+//                                            alert(dbErr.toString);
+//                                        }
+//                                    });
+                            }
+                            //var taskId = yield Database.closeTask(li.dataset["key"])
+                            undoTimer = setTimeout(() => {
+                                try {
+                                    //yield Google.closeTask(taskId);
+                                    li.style.height = '0px'
+                                }
+                                catch (err) {
+                                    var ge = err
+                                    alert(ge.toString())
+                                }
+                            }, 3000)
+                            li.addEventListener("transitionend", function transitionend(evt) {
+                                var transitionEvent = evt
+                                if (transitionEvent.propertyName == 'height') {
+                                    li.removeEventListener("transitionend", transitionend)
+                                    li.parentNode.removeChild(li)
+                                }
+                            })
+                        }
+                        else {
+                            targetRow.style.transition = ''
+                            targetRow.style.backgroundColor = ""
+                            li.style.backgroundColor = ""
+                        }
+                        evt.preventDefault()
+                        evt.stopPropagation()
+                    }, 10)
+                })
+            }
+        }, true)
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         taskList = document.getElementById("tasks")
         itemFactory = document.getElementById('taskTemplate').content.querySelector('li')
+        addDismissHandling();
         addClick()
         Native.initialize()
     })
