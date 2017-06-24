@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Handler
 import android.text.TextUtils
 import org.jetbrains.anko.db.select
+import org.jetbrains.anko.db.update
 
 /**
  * Created by urieg on 05.06.2017.
@@ -52,7 +53,8 @@ class TasksContentProvider: ContentProvider() {
     }
 
     override fun update(uri: Uri?, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
-        return 0
+        val result = db.writableDatabase.update(TasksTable.NAME, values, selection, selectionArgs)
+        return result
     }
 
     override fun delete(uri: Uri?, selection: String?, selectionArgs: Array<out String>?): Int {
