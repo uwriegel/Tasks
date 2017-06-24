@@ -4,9 +4,6 @@ import android.app.IntentService
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.os.ResultReceiver
-import android.util.Log
 import com.gmail.uwriegel.tasks.activities.MainActivity
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
@@ -15,7 +12,6 @@ import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.tasks.model.Task
 import com.google.api.services.tasks.model.Tasks
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -83,21 +79,33 @@ class UpdateService : IntentService("UpdateService") {
                 items.plusAssign(result.items)
             }
 
-            //.setShowCompleted(false).setUpdatedMin("2017-02-01T00:00:00.000Z").execute();
             val tasks = items.filter { it.completed == null }
             val tasksCompleted = items.filter { it.completed != null }
+
+            for (task in tasksCompleted)
+                checkRemoveTask(selectedTasklist, task)
             for (task in tasks)
-                insertTask(selectedTasklist, task)
+                insertOrUpdateTask(selectedTasklist, task)
+
+            Settings.instance.setUpdateTime(applicationContext, dateNow)
 
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             broadcast(MainActivity.BROADCAST_UPDATED)
-            Settings.instance.setUpdateTime(applicationContext, dateNow)
         }
     }
 
-    private fun insertTask(taskTableId: String, task: Task) {
+    private fun checkRemoveTask(taskTableId: String, task: Task) {
+        val where = "${TasksTable.KEY_GOOGLE_ID} = '${task.id}'"
+        // If the earthquake is new, insert it into the provider.
+        val query = contentResolver.query(TasksContentProvider.CONTENT_URI, null, where, null, null)
+        if (query?.count != 0)
+            contentResolver.delete(TasksContentProvider.CONTENT_URI, where, null)
+        query.close()
+    }
+
+    private fun insertOrUpdateTask(taskTableId: String, task: Task) {
         // Construct a where clause to make sure we don’t already have this
         // earthquake in the provider.
         val where = "${TasksTable.KEY_GOOGLE_ID} = '${task.id}'"
@@ -113,6 +121,9 @@ class UpdateService : IntentService("UpdateService") {
             values.put(TasksTable.KEY_HAS_DUE, if (task.due != null) 1 else 0)
             values.put(TasksTable.KEY_UPDATED, task.updated.value)
             contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
+        }
+        else {
+            // TODO: Update Task when Updated is older
         }
         query.close()
     }
