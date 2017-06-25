@@ -272,14 +272,8 @@ var ContentView = (function () {
                             Native.deleteTask(li.dataset["id"], true)
 
                             undoTimer = setTimeout(() => {
-                                try {
-                                    //yield Google.closeTask(taskId);
-                                    li.style.height = '0px'
-                                }
-                                catch (err) {
-                                    var ge = err
-                                    alert(ge.toString())
-                                }
+                                li.style.height = '0px'
+                                Native.updateDeletedTask(li.dataset["id"])
                             }, 3000)
                             li.addEventListener("transitionend", function transitionend(evt) {
                                 var transitionEvent = evt

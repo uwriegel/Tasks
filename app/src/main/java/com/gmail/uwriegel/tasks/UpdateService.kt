@@ -114,10 +114,12 @@ class UpdateService : IntentService("UpdateService") {
                             task.completed = DateTime(Date(), TimeZone.getDefault())
                             task.status = "completed"
                             service.tasks().update(selectedTasklist, googleId, task).execute()
-                            // TODO: dann lösche in DB
                         }
                     }
                 }
+
+                if (queryUpdated.getLong(6).compareTo(1) == 0)
+                    contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_GOOGLE_ID} = '${googleId}'", null)
             }
 
             if (queryUpdated.count > 0) {
