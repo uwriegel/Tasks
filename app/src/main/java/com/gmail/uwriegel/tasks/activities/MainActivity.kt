@@ -33,8 +33,8 @@ import com.gmail.uwriegel.tasks.db.TasksTable
 import java.util.*
 
 
-// TODO: Gelöschte nach Neustart hochmelden
 // TODO: Bei Gelöschte nach 5s hochmelden
+// TODO: in DB gelöscht, die niht in Google gefunden werden, in DB löschen
 // TODO: Neuen Task anlegen (Activity)
 // TODO: Task ändern mit Activity
 

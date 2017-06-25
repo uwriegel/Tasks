@@ -4,12 +4,14 @@ import android.app.IntentService
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import com.gmail.uwriegel.tasks.activities.MainActivity
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import com.gmail.uwriegel.tasks.google.createCredential
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.util.DateTime
 import com.google.api.services.tasks.model.Task
 import com.google.api.services.tasks.model.Tasks
 import java.util.*
@@ -59,6 +61,16 @@ class UpdateService : IntentService("UpdateService") {
 
             val lastUpdated = Settings.instance.getUpdateTime(applicationContext)
 
+            val where = "${TasksTable.KEY_UPDATED} > ${lastUpdated.time}"
+            val queryUpdated = contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(
+                    TasksTable.KEY_GOOGLE_ID,
+                    TasksTable.KEY_TITLE,
+                    TasksTable.KEY_NOTES,
+                    TasksTable.KEY_DUE,
+                    TasksTable.KEY_HAS_DUE,
+                    TasksTable.KEY_UPDATED,
+                    TasksTable.KEY_DELETED), where, null, null)
+
             fun getTasks(pageToken: String?): Tasks {
                 var query = service.tasks().list(selectedTasklist)
                         .setFields("items(id,title,notes,due,completed,updated),nextPageToken")
@@ -71,21 +83,51 @@ class UpdateService : IntentService("UpdateService") {
             }
 
             var result = getTasks(null)
-            if (result.items == null)
-                return;
-            val items = result.items
-            while (result.nextPageToken != null) {
-                result = getTasks(result.nextPageToken)
-                items.plusAssign(result.items)
+            if (result.items != null) {
+
+                val items = result.items
+                while (result.nextPageToken != null) {
+                    result = getTasks(result.nextPageToken)
+                    items.plusAssign(result.items)
+                }
+
+                val tasks = items.filter { it.completed == null }
+                val tasksCompleted = items.filter { it.completed != null }
+
+                for (task in tasksCompleted)
+                    checkRemoveTask(selectedTasklist, task)
+                for (task in tasks)
+                    insertOrUpdateTask(service, selectedTasklist, selectedTasklist, task)
             }
 
-            val tasks = items.filter { it.completed == null }
-            val tasksCompleted = items.filter { it.completed != null }
+            fun updateTask(queryUpdated: Cursor) {
+                val googleId = queryUpdated.getString(0)
+                var task = service.tasks().get(selectedTasklist, googleId)
+                        //.setFields("items(id,title,notes,due,completed,updated)")
+                        .execute()
 
-            for (task in tasksCompleted)
-                checkRemoveTask(selectedTasklist, task)
-            for (task in tasks)
-                insertOrUpdateTask(selectedTasklist, task)
+                if (task != null) {
+                    val dbUpdated = queryUpdated.getLong(5)
+                    if (dbUpdated > task.updated.value) {
+                        if (queryUpdated.getLong(6).compareTo(1) == 0) {
+                            task.updated = DateTime(dbUpdated)
+                            task.completed = DateTime(Date(), TimeZone.getDefault())
+                            task.status = "completed"
+                            service.tasks().update(selectedTasklist, googleId, task).execute()
+                            // TODO: dann lösche in DB
+                        }
+                    }
+                }
+            }
+
+            if (queryUpdated.count > 0) {
+                queryUpdated.moveToFirst()
+                while (true) {
+                    updateTask(queryUpdated)
+                    if (!queryUpdated.moveToNext())
+                        break
+                }
+            }
 
             Settings.instance.setUpdateTime(applicationContext, dateNow)
 
@@ -105,12 +147,18 @@ class UpdateService : IntentService("UpdateService") {
         query.close()
     }
 
-    private fun insertOrUpdateTask(taskTableId: String, task: Task) {
+    private fun insertOrUpdateTask(service: com.google.api.services.tasks.Tasks, selectedTasklist: String, taskTableId: String, task: Task) {
         // Construct a where clause to make sure we don’t already have this
         // earthquake in the provider.
         val where = "${TasksTable.KEY_GOOGLE_ID} = '${task.id}'"
         // If the earthquake is new, insert it into the provider.
-        val query = contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(TasksTable.KEY_UPDATED), where, null, null)
+        val query = contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(
+            TasksTable.KEY_TITLE,
+            TasksTable.KEY_NOTES,
+            TasksTable.KEY_DUE,
+            TasksTable.KEY_HAS_DUE,
+            TasksTable.KEY_UPDATED,
+            TasksTable.KEY_DELETED), where, null, null)
         if (query?.count == 0) {
             val values = ContentValues()
             values.put(TasksTable.KEY_TASK_TABLE_ID, taskTableId)
@@ -124,8 +172,7 @@ class UpdateService : IntentService("UpdateService") {
         }
         else {
             query.moveToFirst()
-            val dbUpdated = query.getLong(0)
-
+            val dbUpdated = query.getLong(4)
             if (dbUpdated < task.updated.value) {
                 val values = ContentValues()
                 values.put(TasksTable.KEY_TASK_TABLE_ID, taskTableId)
