@@ -36,7 +36,8 @@ fun queryAllTasks(context: Context, onFinished: (tasks: List<Task>, calendarItem
  */
 fun queryTasks(context: Context): List<Task> {
     val cursor = context.contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(TasksTable.KEY_ID, TasksTable.KEY_TITLE, TasksTable.KEY_NOTES, TasksTable.KEY_DUE),
-            "${TasksTable.KEY_TASK_TABLE_ID} = '${Settings.instance.selectedTasklist}'", null, "${TasksTable.KEY_HAS_DUE} DESC, ${TasksTable.KEY_DUE}")
+            "${TasksTable.KEY_TASK_TABLE_ID} = '${Settings.instance.selectedTasklist}' AND ${TasksTable.KEY_DELETED} = 0",
+            null, "${TasksTable.KEY_HAS_DUE} DESC, ${TasksTable.KEY_DUE}")
 
     fun toTaskList(): List<Task> {
         val list = ArrayList<Task>()

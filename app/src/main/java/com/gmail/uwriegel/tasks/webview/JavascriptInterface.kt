@@ -17,6 +17,8 @@ class JavascriptInterface(val context: Context, val contentView: WebView, val ca
     @JavascriptInterface
     fun doHapticFeedback() = context.doAsync { uiThread { contentView.playSoundEffect(SoundEffectConstants.CLICK) } }
     @JavascriptInterface
+    fun deleteTask(id: String, delete: Boolean) = callbacks.deleteTask(id, delete)
+    @JavascriptInterface
     fun showEvent(id: String) = context.doAsync { uiThread { callbacks.showEvent(id) } }
 }
 

@@ -126,8 +126,6 @@ class UpdateService : IntentService("UpdateService") {
             query.moveToFirst()
             val dbUpdated = query.getLong(0)
 
-            val affe1 = task.updated.value
-
             if (dbUpdated < task.updated.value) {
                 val values = ContentValues()
                 values.put(TasksTable.KEY_TASK_TABLE_ID, taskTableId)
@@ -137,6 +135,7 @@ class UpdateService : IntentService("UpdateService") {
                 values.put(TasksTable.KEY_DUE, task.due?.value)
                 values.put(TasksTable.KEY_HAS_DUE, if (task.due != null) 1 else 0)
                 values.put(TasksTable.KEY_UPDATED, task.updated.value)
+                values.put(TasksTable.KEY_DELETED, 0)
                 contentResolver.update(TasksContentProvider.CONTENT_URI, values, where, null)
             }
         }

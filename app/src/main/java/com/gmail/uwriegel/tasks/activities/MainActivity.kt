@@ -1,10 +1,7 @@
 package com.gmail.uwriegel.tasks.activities
 
 import android.app.Activity
-import android.content.BroadcastReceiver
-import android.content.ContentUris
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.support.v4.view.GravityCompat
@@ -30,14 +27,14 @@ import kotlinx.android.synthetic.main.content_main.*
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import android.net.ConnectivityManager
-import android.content.IntentFilter
 import com.gmail.uwriegel.tasks.*
+import com.gmail.uwriegel.tasks.db.TasksContentProvider
+import com.gmail.uwriegel.tasks.db.TasksTable
+import java.util.*
 
 
-// TODO: Nach UpdateService Einträge anzeigen
-// TODO: Gelöschte entfernen aus der Datenbank, anschließend aus der Anzeige
-// TODO: Geänderte ändern, anschließend in der Anzeige
-// TODO: Swipe to dismiss mit Update und redo
+// TODO: Gelöschte nach Neustart hochmelden
+// TODO: Bei Gelöschte nach 5s hochmelden
 // TODO: Neuen Task anlegen (Activity)
 // TODO: Task ändern mit Activity
 
@@ -54,6 +51,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         WebView.setWebContentsDebuggingEnabled(true)
         contentView.setWebChromeClient(WebChromeClient())
         contentView.addJavascriptInterface(JavascriptInterface(this, contentView, object: Callbacks {
+            override fun deleteTask(id: String, delete: Boolean) {
+                val where = "${TasksTable.KEY_ID} = '${id}'"
+                val values = ContentValues()
+                values.put(TasksTable.KEY_UPDATED, Date().time)
+                values.put(TasksTable.KEY_DELETED, if (delete) 1 else 0)
+                contentResolver.update(TasksContentProvider.CONTENT_URI, values, where, null)
+            }
+
             override fun showEvent(eventId: String) {
                 val id = java.lang.Long.parseLong(eventId)
                 val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, id)

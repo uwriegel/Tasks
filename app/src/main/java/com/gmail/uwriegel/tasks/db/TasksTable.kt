@@ -13,4 +13,5 @@ object TasksTable {
     val KEY_DUE = "due"
     val KEY_HAS_DUE = "hasDue"
     val KEY_UPDATED = "updated"
+    val KEY_DELETED = "isDeleted"
 }

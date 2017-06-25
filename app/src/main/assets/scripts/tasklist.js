@@ -2,7 +2,8 @@
 var ContentView = (function () {
     var taskList
     var itemFactory
-    const DRAWER_TOUCH_MARGIN = 20;
+    var dismissUndoFactory
+    const DRAWER_TOUCH_MARGIN = 20
 
     function insertTasks(items) {
         clear()
@@ -20,38 +21,38 @@ var ContentView = (function () {
         var li = itemFactory.cloneNode(true)
         setLi(li, task)
         if (sorted) {
-            var lis = Array.from(taskList.getElementsByTagName('li'));
-            var liSucc;
+            var lis = Array.from(taskList.getElementsByTagName('li'))
+            var liSucc
             if (task.due == 0)
-                taskList.appendChild(li);
+                taskList.appendChild(li)
             else if (lis.some(function (li) {
-                liSucc = li;
-                let date = new Date(li.dataset["due"]);
-                return task.due <= date;
+                liSucc = li
+                let date = new Date(li.dataset["due"])
+                return task.due <= date
             }))
-                taskList.insertBefore(li, liSucc);
+                taskList.insertBefore(li, liSucc)
             else
-                taskList.appendChild(li);
+                taskList.appendChild(li)
         }
         else
-            taskList.appendChild(li);
+            taskList.appendChild(li)
     }
 
     function insertCalendarItem(calendarItem) {
-        var li = itemFactory.cloneNode(true);
+        var li = itemFactory.cloneNode(true)
         if (!setCalendarLi(li, calendarItem))
-            return;
-        var lis = Array.from(taskList.getElementsByTagName('li'));
-        var liSucc;
-        var date = new Date(calendarItem.due);
+            return
+        var lis = Array.from(taskList.getElementsByTagName('li'))
+        var liSucc
+        var date = new Date(calendarItem.due)
         if (lis.some(function (li) {
-            liSucc = li;
-            let compareDate = new Date(li.dataset["due"]);
-            return date <= compareDate;
+            liSucc = li
+            let compareDate = new Date(li.dataset["due"])
+            return date <= compareDate
         }))
-            taskList.insertBefore(li, liSucc);
+            taskList.insertBefore(li, liSucc)
         else
-            taskList.appendChild(li);
+            taskList.appendChild(li)
     }
 
     function setLi(li, task) {
@@ -74,65 +75,65 @@ var ContentView = (function () {
             var dayDiff = (due.getTime() - dateToday.getTime()) / (1000 * 3600 * 24)
             if (due <= dateToday) {
                 if (dayDiff > -1 && dayDiff <= 0) {
-                    taskSymbol.innerText = "H";
-                    taskSymbol.style.backgroundColor = "#e6ef00";
+                    taskSymbol.innerText = "H"
+                    taskSymbol.style.backgroundColor = "#e6ef00"
                 }
                 else
-                    taskSymbol.innerText = "!";
+                    taskSymbol.innerText = "!"
             }
             else if (dayDiff > 0 && dayDiff <= (7 - dateToday.getDay())) {
-                taskSymbol.innerText = due.toLocaleDateString("de", { weekday: "short" });
-                taskSymbol.style.backgroundColor = "#4CAF50";
+                taskSymbol.innerText = due.toLocaleDateString("de", { weekday: "short" })
+                taskSymbol.style.backgroundColor = "#4CAF50"
             }
             else {
-                taskSymbol.innerText = due.toLocaleDateString("de", { weekday: "short" });
-                taskSymbol.style.backgroundColor = "#3F51B5";
+                taskSymbol.innerText = due.toLocaleDateString("de", { weekday: "short" })
+                taskSymbol.style.backgroundColor = "#3F51B5"
             }
         }
         else {
-            taskSymbol.style.backgroundColor = "lightgray";
-            taskSymbol.innerText = "o";
+            taskSymbol.style.backgroundColor = "lightgray"
+            taskSymbol.innerText = "o"
         }
     }
 
     function setCalendarLi(li, calendarItem) {
-        li.querySelector('.taskTitle').innerText = calendarItem.title;
+        li.querySelector('.taskTitle').innerText = calendarItem.title
         var due = new Date(calendarItem.due)
-        li.querySelector('.taskDayOfWeek').innerText = getDayOfWeek(due);
-        li.querySelector('.taskDateOnly').innerText = due.toLocaleDateString("de", { month: "2-digit", day: "2-digit" });
-        var dateToday = new Date();
-        li.dataset["eventId"] = calendarItem.id;
-        li.dataset["due"] = due.toISOString();
-        var taskSymbol = li.querySelector('.taskSymbol');
-        var i = taskSymbol.querySelector("i");
-        i.classList.remove("hidden");
-        var dayDiff = (due.getTime() - dateToday.getTime()) / (1000 * 3600 * 24);
+        li.querySelector('.taskDayOfWeek').innerText = getDayOfWeek(due)
+        li.querySelector('.taskDateOnly').innerText = due.toLocaleDateString("de", { month: "2-digit", day: "2-digit" })
+        var dateToday = new Date()
+        li.dataset["eventId"] = calendarItem.id
+        li.dataset["due"] = due.toISOString()
+        var taskSymbol = li.querySelector('.taskSymbol')
+        var i = taskSymbol.querySelector("i")
+        i.classList.remove("hidden")
+        var dayDiff = (due.getTime() - dateToday.getTime()) / (1000 * 3600 * 24)
         if (due <= dateToday) {
             if (dayDiff > -1 && dayDiff <= 0) {
-                taskSymbol.style.backgroundColor = "#e6ef00";
-                taskSymbol.style.color = "#3F51B5";
+                taskSymbol.style.backgroundColor = "#e6ef00"
+                taskSymbol.style.color = "#3F51B5"
             }
             else
-                return false;
+                return false
         }
         else if (dayDiff > 0 && dayDiff <= (7 - dateToday.getDay()))
-            taskSymbol.style.backgroundColor = "#4CAF50";
+            taskSymbol.style.backgroundColor = "#4CAF50"
         else
-            taskSymbol.style.backgroundColor = "#3F51B5";
-        return true;
+            taskSymbol.style.backgroundColor = "#3F51B5"
+        return true
     }
 
     function getDayOfWeek(date) {
-        var days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-        return days[date.getDay()];
+        var days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
+        return days[date.getDay()]
     }
 
     function clear() {
-        taskList.innerHTML = '';
+        taskList.innerHTML = ''
     }
 
     function addClick() {
-        var inClick;
+        var inClick
         taskList.onclick = evt => {
             if (inClick)
                 return
@@ -157,7 +158,7 @@ var ContentView = (function () {
                 lastindex = index
                 if (!drawCircle(index))
                     return
-                window.requestAnimationFrame(resizeChecking);
+                window.requestAnimationFrame(resizeChecking)
             })
             var x = evt.clientX
             var y = evt.pageY - li.offsetTop + taskList.scrollTop
@@ -254,28 +255,22 @@ var ContentView = (function () {
                             li.appendChild(dismissUndo)
                             var undoTimer
                             dismissUndo.onclick = () => {
-//                                    return __awaiter(this, void 0, void 0, function* () {
-//                                        try {
-//                                            yield Database.undoCloseTask(li.dataset["key"]);
-//                                            clearTimeout(undoTimer);
-//                                            li.removeChild(dismissUndo);
-//                                            li.classList.remove("undoContainer");
-//                                            li.appendChild(targetRow);
-//                                            targetRow.style.transition = 'left 0.3s';
-//                                            targetRow.addEventListener("transitionend", function transitionend(evt) {
-//                                                targetRow.style.transition = '';
-//                                            });
-//                                            setTimeout(function () {
-//                                                targetRow.style.left = '0px';
-//                                            }, 20);
-//                                        }
-//                                        catch (error) {
-//                                            var dbErr = error;
-//                                            alert(dbErr.toString);
-//                                        }
-//                                    });
+                                Native.deleteTask(li.dataset["id"], false)
+                                clearTimeout(undoTimer);
+                                li.removeChild(dismissUndo);
+                                li.classList.remove("undoContainer");
+                                li.appendChild(targetRow);
+                                targetRow.style.transition = 'left 0.3s';
+                                targetRow.addEventListener("transitionend", function transitionend(evt) {
+                                    targetRow.style.transition = '';
+                                });
+                                setTimeout(function () {
+                                    targetRow.style.left = '0px';
+                                }, 20);
                             }
-                            //var taskId = yield Database.closeTask(li.dataset["key"])
+
+                            Native.deleteTask(li.dataset["id"], true)
+
                             undoTimer = setTimeout(() => {
                                 try {
                                     //yield Google.closeTask(taskId);
@@ -310,7 +305,8 @@ var ContentView = (function () {
     document.addEventListener("DOMContentLoaded", () => {
         taskList = document.getElementById("tasks")
         itemFactory = document.getElementById('taskTemplate').content.querySelector('li')
-        addDismissHandling();
+        dismissUndoFactory = document.getElementById('dismissUndoTemplate').content.querySelector('span')
+        addDismissHandling()
         addClick()
         Native.initialize()
     })
