@@ -32,9 +32,9 @@ import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import java.util.*
 
-
-// TODO: Bei Gelöschte nach 5s hochmelden
-// TODO: in DB gelöscht, die niht in Google gefunden werden, in DB löschen
+// TODO: Nicht alles einzeln hochmelden (z.B. gelöschte)
+// TODO: UpdateService beim Beenden anwerfen
+// TODO: in DB gelöscht, die nicht in Google gefunden werden, in DB löschen
 // TODO: Task in Aktivity anzeigen
 // TODO: Neuen Task anlegen (Activity)
 // TODO: Task ändern mit Activity
@@ -58,10 +58,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 values.put(TasksTable.KEY_UPDATED, Date().time)
                 values.put(TasksTable.KEY_DELETED, if (delete) 1 else 0)
                 contentResolver.update(TasksContentProvider.CONTENT_URI, values, where, null)
-            }
-
-            override fun updateDeletedTask(id: String) {
-
             }
 
             override fun showEvent(eventId: String) {
