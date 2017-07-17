@@ -15,6 +15,8 @@ var ContentView = (function () {
         items.calendarItems.forEach(c => {
             insertCalendarItem(c)
         })
+
+        setTimeout(() => theScroll.refresh(), 0)
     }
 
     function insertTask(task, sorted) {
@@ -296,12 +298,23 @@ var ContentView = (function () {
         }, true)
     }
 
+    var theScroll
+
     document.addEventListener("DOMContentLoaded", () => {
         taskList = document.getElementById("tasks")
         itemFactory = document.getElementById('taskTemplate').content.querySelector('li')
         dismissUndoFactory = document.getElementById('dismissUndoTemplate').content.querySelector('span')
         addDismissHandling()
         addClick()
+
+        theScroll = new IScroll('#wrapper',
+        {
+            scrollbars: true,
+            interactiveScrollbars: true,
+            fadeScrollbars: true,
+            shrinkScrollbars: 'clip'
+        })
+
         Native.initialize()
     })
 
