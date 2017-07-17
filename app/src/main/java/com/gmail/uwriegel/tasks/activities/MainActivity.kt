@@ -52,6 +52,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         WebView.setWebContentsDebuggingEnabled(true)
         contentView.setWebChromeClient(WebChromeClient())
         contentView.addJavascriptInterface(JavascriptInterface(this, contentView, object: Callbacks {
+            override fun updateDeletedTask(id: String) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
             override fun deleteTask(id: String, delete: Boolean) {
                 val where = "${TasksTable.KEY_ID} = '${id}'"
                 val values = ContentValues()
