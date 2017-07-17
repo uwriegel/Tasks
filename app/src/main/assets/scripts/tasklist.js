@@ -16,7 +16,7 @@ var ContentView = (function () {
             insertCalendarItem(c)
         })
 
-        setTimeout(() => theScroll.refresh(), 0)
+        theScroll.refresh()
     }
 
     function insertTask(task, sorted) {
