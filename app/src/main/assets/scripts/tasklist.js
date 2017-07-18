@@ -1,3 +1,5 @@
+// TODO: Click-Animation richtig zentrieren
+// TODO: Touch-DissmissHandling
 
 var ContentView = (function () {
     var taskList
@@ -312,6 +314,7 @@ var ContentView = (function () {
         {
             scrollbars: true,
             interactiveScrollbars: true,
+            click: true,
             fadeScrollbars: true,
             shrinkScrollbars: 'clip'
         })
