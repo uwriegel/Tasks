@@ -282,6 +282,7 @@ var ContentView = (function () {
                                 if (transitionEvent.propertyName == 'height') {
                                     li.removeEventListener("transitionend", transitionend)
                                     li.parentNode.removeChild(li)
+                                    theScroll.refresh()
                                 }
                             })
                         }
