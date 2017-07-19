@@ -1,5 +1,3 @@
-// TODO: Click-Animation richtig zentrieren
-// TODO: Touch-DissmissHandling
 
 var ContentView = (function () {
     var taskList
@@ -216,8 +214,8 @@ var ContentView = (function () {
             var li = (targetRow.closest('li'))
             var diff
             var lastDiff
-            taskList.addEventListener('touchmove', touchmove, true)
-            taskList.addEventListener('touchend', touchend, true)
+            taskList.addEventListener('touchmove', touchmove)
+            taskList.addEventListener('touchend', touchend)
             function touchmove(evt) {
                 if (diff)
                     lastDiff = diff
@@ -226,8 +224,8 @@ var ContentView = (function () {
                     moving = true
                     var diffY = Math.abs(evt.touches[0].clientY - initialY)
                     if (diff < 10 || Math.abs(diff) < diffY * 2) {
-                        taskList.removeEventListener('touchmove', touchmove, true)
-                        taskList.removeEventListener('touchend', touchend, true)
+                        taskList.removeEventListener('touchmove', touchmove)
+                        taskList.removeEventListener('touchend', touchend)
                         return
                     }
                     targetRow.style.backgroundColor = "white"
@@ -241,8 +239,12 @@ var ContentView = (function () {
             function touchend(evt) {
                 if (!moving)
                     return
-                taskList.removeEventListener('touchmove', touchmove, true)
-                taskList.removeEventListener('touchend', touchend, true)
+
+                evt.preventDefault()
+                evt.stopPropagation()
+
+                taskList.removeEventListener('touchmove', touchmove)
+                taskList.removeEventListener('touchend', touchend)
                 targetRow.style.transition = 'left 0.3s'
                 var dismiss = diff - lastDiff > 15 || (diff - lastDiff > 0 && diff > (window.innerWidth / 2))
                 var left = dismiss ? window.innerWidth : 0
@@ -307,7 +309,7 @@ var ContentView = (function () {
         taskList = document.getElementById("tasks")
         itemFactory = document.getElementById('taskTemplate').content.querySelector('li')
         dismissUndoFactory = document.getElementById('dismissUndoTemplate').content.querySelector('span')
-        //addDismissHandling()
+        addDismissHandling()
         addClick()
 
         theScroll = new IScroll('#wrapper',
