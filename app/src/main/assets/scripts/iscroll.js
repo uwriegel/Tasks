@@ -253,28 +253,30 @@ var utils = (function () {
 		e.target.dispatchEvent(ev);
 	};
 
-	me.click = function (e) {
-		var target = e.target,
-			ev;
+	me.click = e => 
+	{
+		var target = e.target
 
-		if ( !(/(SELECT|INPUT|TEXTAREA)/i).test(target.tagName) ) {
-			// https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/initMouseEvent
-			// initMouseEvent is deprecated.
-			ev = document.createEvent(window.MouseEvent ? 'MouseEvents' : 'Event');
-			ev.initEvent('click', true, true);
-			ev.view = e.view || window;
-			ev.detail = 1;
-			ev.screenX = target.screenX || 0;
-			ev.screenY = target.screenY || 0;
-			ev.clientX = target.clientX || 0;
-			ev.clientY = target.clientY || 0;
-			ev.ctrlKey = !!e.ctrlKey;
-			ev.altKey = !!e.altKey;
-			ev.shiftKey = !!e.shiftKey;
-			ev.metaKey = !!e.metaKey;
-			ev.button = 0;
-			ev.relatedTarget = null;
-			ev._constructed = true;
+		if ( !(/(SELECT|INPUT|TEXTAREA)/i).test(target.tagName) ) 
+		{
+			var ev = new MouseEvent('click', {
+				bubbles: true,
+				cancelable: true,
+				view: e.view || window,
+				detail: 1,
+				screenX: target.screenX || 0,
+				screenY: target.screenY || 0,	
+				clientX: e.changedTouches ? e.changedTouches[0].clientX : e.clientX,
+				clientY: e.changedTouches ? e.changedTouches[0].clientY : e.clientY,
+				ctrlKey: !!e.ctrlKey,
+				altKey: !!e.altKey,
+				shiftKey: !!e.shiftKey,
+				metaKey: !!e.metaKey,
+				button: 0,
+				relatedTarget:null
+			})
+            ev._constructed = true
+
 			target.dispatchEvent(ev);
 		}
 	};

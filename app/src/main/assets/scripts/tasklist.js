@@ -1,4 +1,3 @@
-// TODO: Click-Animation richtig zentrieren
 // TODO: Touch-DissmissHandling
 
 var ContentView = (function () {
@@ -165,7 +164,7 @@ var ContentView = (function () {
                 window.requestAnimationFrame(resizeChecking)
             })
             var x = evt.clientX
-            var y = evt.pageY - li.offsetTop + taskList.scrollTop
+            var y = evt.pageY - li.offsetTop - theScroll.y //taskList.scrollTop
             var centerX = x
             var centerY = y
             var actionExecuted
@@ -191,7 +190,7 @@ var ContentView = (function () {
                 context.clearRect(0, 0, canvas.width, canvas.height)
                 context.beginPath()
                 context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false)
-                context.fillStyle = '#efefff'
+                context.fillStyle = '#e0e0ff'
                 context.globalAlpha = 1 - alpha
                 context.fill()
                 var url = canvas.toDataURL()
