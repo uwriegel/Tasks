@@ -480,10 +480,6 @@ IScroll.prototype = {
 			return;
 		}
 
-		if ( this.options.preventDefault && !utils.isBadAndroid && !utils.preventDefaultException(e.target, this.options.preventDefaultException) ) {
-			e.preventDefault();
-		}
-
 		var point = e.touches ? e.touches[0] : e,
 			pos;
 
@@ -519,13 +515,11 @@ IScroll.prototype = {
 	},
 
 	_move: function (e) {
-		if ( !this.enabled || utils.eventType[e.type] !== this.initiated ) {
-			return;
-		}
+		if ( !this.enabled || utils.eventType[e.type] !== this.initiated )
+			return
 
-		if ( this.options.preventDefault ) {	// increases performance on Android? TODO: check!
-			e.preventDefault();
-		}
+        if (e.touches && e.touches.length != 1)
+            return
 
 		var point		= e.touches ? e.touches[0] : e,
 			deltaX		= point.pageX - this.pointX,
@@ -618,10 +612,6 @@ IScroll.prototype = {
 	_end: function (e) {
 		if ( !this.enabled || utils.eventType[e.type] !== this.initiated ) {
 			return;
-		}
-
-		if ( this.options.preventDefault && !utils.preventDefaultException(e.target, this.options.preventDefaultException) ) {
-			e.preventDefault();
 		}
 
 		var point = e.changedTouches ? e.changedTouches[0] : e,
@@ -1889,6 +1879,9 @@ Indicator.prototype = {
 	},
 
 	_move: function (e) {
+        if (e.touches && e.touches.length != 1)
+            return
+
 		var point = e.touches ? e.touches[0] : e,
 			deltaX, deltaY,
 			newX, newY,

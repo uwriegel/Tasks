@@ -1,3 +1,4 @@
+// TODO: Click-Animation richtig zentrieren
 // TODO: Touch-DissmissHandling
 
 var ContentView = (function () {
@@ -164,7 +165,7 @@ var ContentView = (function () {
                 window.requestAnimationFrame(resizeChecking)
             })
             var x = evt.clientX
-            var y = evt.pageY - li.offsetTop - theScroll.y //taskList.scrollTop
+            var y = evt.pageY - li.offsetTop - theScroll.y 
             var centerX = x
             var centerY = y
             var actionExecuted
@@ -306,7 +307,7 @@ var ContentView = (function () {
         taskList = document.getElementById("tasks")
         itemFactory = document.getElementById('taskTemplate').content.querySelector('li')
         dismissUndoFactory = document.getElementById('dismissUndoTemplate').content.querySelector('span')
-        addDismissHandling()
+        //addDismissHandling()
         addClick()
 
         theScroll = new IScroll('#wrapper',
@@ -314,6 +315,8 @@ var ContentView = (function () {
             scrollbars: true,
             interactiveScrollbars: true,
             click: true,
+            disablePointer: true,
+            disableTouch: false,
             fadeScrollbars: true,
             shrinkScrollbars: 'clip'
         })
