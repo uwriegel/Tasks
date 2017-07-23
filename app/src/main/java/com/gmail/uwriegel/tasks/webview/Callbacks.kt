@@ -6,4 +6,5 @@ package com.gmail.uwriegel.tasks.webview
 interface Callbacks {
     abstract fun deleteTask(id: String, delete: Boolean): Unit
     abstract fun showEvent(eventId: String): Unit
+    abstract fun showTask(eventId: String): Unit
 }

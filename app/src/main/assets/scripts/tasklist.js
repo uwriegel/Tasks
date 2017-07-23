@@ -172,9 +172,9 @@ var ContentView = (function () {
                 if (!actionExecuted && alpha > 0.6) {
                     var key = li.dataset["id"]
                     if (key) {
-//                        dialog = TaskDialog(key)
-//                        actionExecuted = true
-                    }
+                        Native.showTask(key)
+                        actionExecuted = true
+                   }
                     else {
                         Native.showEvent(li.dataset["eventId"])
                         actionExecuted = true

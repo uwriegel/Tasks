@@ -20,5 +20,7 @@ class JavascriptInterface(val context: Context, val contentView: WebView, val ca
     fun deleteTask(id: String, delete: Boolean) = callbacks.deleteTask(id, delete)
     @JavascriptInterface
     fun showEvent(id: String) = context.doAsync { uiThread { callbacks.showEvent(id) } }
+    @JavascriptInterface
+    fun showTask(id: String) = context.doAsync { uiThread { callbacks.showTask(id) } }
 }
 

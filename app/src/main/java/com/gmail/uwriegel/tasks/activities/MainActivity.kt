@@ -31,6 +31,9 @@ import com.gmail.uwriegel.tasks.*
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
 import java.util.*
+import android.content.Intent
+
+
 
 // TODO: Nicht alles einzeln hochmelden (z.B. gelöschte)
 // TODO: UpdateService beim Beenden anwerfen
@@ -67,13 +70,20 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 val intent = Intent(Intent.ACTION_VIEW).setData(uri)
                 startActivity(intent)
             }
+
+            override fun showTask(id: String) {
+                val intent = Intent(this@MainActivity, TaskActivity::class.java)
+                intent.putExtra(TaskActivity.ID, id)
+                startActivity(intent)
+            }
+
         }), "Native")
         contentView.isHapticFeedbackEnabled = true
         contentView.loadUrl("file:///android_asset/index.html")
 
         fab.setOnClickListener {
-                //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //                        .setAction("Action", null).show();
+            val intent = Intent(this, TaskActivity::class.java)
+            startActivity(intent)
         }
         swipeRefresh.isEnabled = false
 
