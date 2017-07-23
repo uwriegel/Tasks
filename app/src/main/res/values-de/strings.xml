@@ -8,5 +8,6 @@
 
     <string name="google_account_access_needed">Diese App benötigt Zugriff auf Dein Google Konto (via Kontakte).</string>
     <string name="google_account">Google-Konto</string>
-    <string name="task">Aufgabe</string>
+    <string name="task">Aufgabe bearbeiten</string>
+    <string name="new_task">Neue Aufgabe</string>
 </resources>
