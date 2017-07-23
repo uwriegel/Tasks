@@ -264,7 +264,9 @@ var ContentView = (function () {
                             li.classList.add("undoContainer")
                             li.appendChild(dismissUndo)
                             var undoTimer
-                            dismissUndo.onclick = () => {
+                            li.onclick = evt => {
+                                evt.stopPropagation()
+                                evt.preventDefault()
                                 Native.deleteTask(li.dataset["id"], false)
                                 clearTimeout(undoTimer);
                                 li.removeChild(dismissUndo);
