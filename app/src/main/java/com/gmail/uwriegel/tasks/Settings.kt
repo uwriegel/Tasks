@@ -58,15 +58,27 @@ class Settings private constructor() {
             return emptyList()
     }
 
-    fun setUpdateTime(context: Context, updateTime: Date) {
+    fun setLocalUpdateTime(context: Context, updateTime: Date) {
         val sharedPreferences = getPreferences(context)
         val editor = sharedPreferences.edit()
-        editor.putLong(PREF_UPDATE_TIME, updateTime.time)
+        editor.putLong(PREF_UPDATE_TIME_LOCAL, updateTime.time)
         editor.apply()
     }
 
-    fun getUpdateTime(context: Context) : Date {
-        val date = getPreferences(context).getLong(PREF_UPDATE_TIME, 0)
+    fun getLocalUpdateTime(context: Context) : Date {
+        val date = getPreferences(context).getLong(PREF_UPDATE_TIME_LOCAL, 0)
+        return Date(date)
+    }
+
+    fun setRemoteUpdateTime(context: Context, updateTime: Date) {
+        val sharedPreferences = getPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putLong(PREF_UPDATE_TIME_REMOTE, updateTime.time)
+        editor.apply()
+    }
+
+    fun getRemoteUpdateTime(context: Context) : Date {
+        val date = getPreferences(context).getLong(PREF_UPDATE_TIME_REMOTE, 0)
         return Date(date)
     }
 
@@ -129,6 +141,7 @@ class Settings private constructor() {
         private val PREF_AVATAR_DOWNLOADED = "avatarDownloaded"
         private val PREF_CALENDARS_LIST = "calendarsList"
         private val PREF_TASKLISTS = "tasklists"
-        private val PREF_UPDATE_TIME = "updateTime"
+        private val PREF_UPDATE_TIME_LOCAL = "localUpdateTime"
+        private val PREF_UPDATE_TIME_REMOTE = "remoteUpdateTime"
     }
 }

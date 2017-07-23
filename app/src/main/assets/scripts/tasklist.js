@@ -212,6 +212,10 @@ var ContentView = (function () {
             if (!targetRow)
                 return
             var li = (targetRow.closest('li'))
+            var id = li.dataset["id"]
+            if (!id)
+                return
+
             var diff
             var lastDiff
             taskList.addEventListener('touchmove', touchmove)
@@ -277,10 +281,7 @@ var ContentView = (function () {
 
                             Native.deleteTask(li.dataset["id"], true)
 
-                            undoTimer = setTimeout(() => {
-                                li.style.height = '0px'
-                                Native.updateDeletedTask(li.dataset["id"])
-                            }, 3000)
+                            undoTimer = setTimeout(() => li.style.height = '0px', 3000)
                             li.addEventListener("transitionend", function transitionend(evt) {
                                 var transitionEvent = evt
                                 if (transitionEvent.propertyName == 'height') {

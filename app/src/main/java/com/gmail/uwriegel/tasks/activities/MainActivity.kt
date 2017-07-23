@@ -52,9 +52,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         WebView.setWebContentsDebuggingEnabled(true)
         contentView.setWebChromeClient(WebChromeClient())
         contentView.addJavascriptInterface(JavascriptInterface(this, contentView, object: Callbacks {
-            override fun updateDeletedTask(id: String) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
 
             override fun deleteTask(id: String, delete: Boolean) {
                 val where = "${TasksTable.KEY_ID} = '${id}'"
@@ -119,7 +116,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                     drawerLayout.closeDrawer(GravityCompat.START)
                 })
 
-                UpdateService.startUpdate(this@MainActivity, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
+                UpdateService.startUpdateLocal(this@MainActivity, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
             }
 
             override fun chooseAccount() {
@@ -134,7 +131,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         navView.loadUrl("file:///android_asset/navheader.html?name=${Settings.instance.googleAccount.name}&displayName=${Settings.instance.googleAccount.displayName}&photo=${Settings.instance.googleAccount.photoUrl}")
 
         if (Settings.instance.googleAccount.name != "" && Settings.instance.selectedTasklist != "")
-            UpdateService.startUpdate(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
+            UpdateService.startUpdateLocal(this, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
         else
             drawerLayout.openDrawer(navigationView)
 
@@ -198,6 +195,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      */
     override fun onPause() {
         super.onPause()
+        UpdateService.startUpdateRemote(this@MainActivity, Settings.instance.googleAccount.name, Settings.instance.selectedTasklist)
     }
 
     /**

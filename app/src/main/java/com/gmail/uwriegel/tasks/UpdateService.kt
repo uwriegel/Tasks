@@ -29,16 +29,21 @@ class UpdateService : IntentService("UpdateService") {
         if (intent != null) {
             val action = intent.action
             when (action) {
-                ACTION_UPDATE -> {
+                ACTION_UPDATE_LOCAL -> {
                     val accountName = intent.getStringExtra(EXTRA_ACCOUNT_NAME)
                     val selectedTasklist = intent.getStringExtra(EXTRA_SELECTED_TASKLIST)
-                    handleActionUpdate(accountName, selectedTasklist)
+                    handleActionUpdateLocal(accountName, selectedTasklist)
+                }
+                ACTION_UPDATE_REMOTE -> {
+                    val accountName = intent.getStringExtra(EXTRA_ACCOUNT_NAME)
+                    val selectedTasklist = intent.getStringExtra(EXTRA_SELECTED_TASKLIST)
+                    handleActionUpdateRemote(accountName, selectedTasklist)
                 }
             }
         }
     }
 
-    private fun handleActionUpdate(accountName: String, selectedTasklist: String) {
+    private fun handleActionUpdateLocal(accountName: String, selectedTasklist: String) {
 
         val dateNow = Date()
 
@@ -52,24 +57,9 @@ class UpdateService : IntentService("UpdateService") {
         try {
             broadcast(MainActivity.BROADCAST_START_UPDATE)
 
-            val tasksCredential = createCredential(this, accountName)
-            val transport = AndroidHttp.newCompatibleTransport()
-            val jsonFactory = JacksonFactory.getDefaultInstance()
-            val service = com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential)
-                    .setApplicationName("Aufgaben")
-                    .build()
+            val service = getService(accountName)
 
-            val lastUpdated = Settings.instance.getUpdateTime(applicationContext)
-
-            val where = "${TasksTable.KEY_UPDATED} > ${lastUpdated.time}"
-            val queryUpdated = contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(
-                    TasksTable.KEY_GOOGLE_ID,
-                    TasksTable.KEY_TITLE,
-                    TasksTable.KEY_NOTES,
-                    TasksTable.KEY_DUE,
-                    TasksTable.KEY_HAS_DUE,
-                    TasksTable.KEY_UPDATED,
-                    TasksTable.KEY_DELETED), where, null, null)
+            val lastUpdated = Settings.instance.getLocalUpdateTime(applicationContext)
 
             fun getTasks(pageToken: String?): Tasks {
                 var query = service.tasks().list(selectedTasklist)
@@ -100,44 +90,74 @@ class UpdateService : IntentService("UpdateService") {
                     insertOrUpdateTask(service, selectedTasklist, selectedTasklist, task)
             }
 
-            fun updateTask(queryUpdated: Cursor) {
-                val googleId = queryUpdated.getString(0)
-                var task = service.tasks().get(selectedTasklist, googleId)
-                        //.setFields("items(id,title,notes,due,completed,updated)")
-                        .execute()
-
-                if (task != null) {
-                    val dbUpdated = queryUpdated.getLong(5)
-                    if (dbUpdated > task.updated.value) {
-                        if (queryUpdated.getLong(6).compareTo(1) == 0) {
-                            task.updated = DateTime(dbUpdated)
-                            task.completed = DateTime(Date(), TimeZone.getDefault())
-                            task.status = "completed"
-                            service.tasks().update(selectedTasklist, googleId, task).execute()
-                        }
-                    }
-                }
-
-                if (queryUpdated.getLong(6).compareTo(1) == 0)
-                    contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_GOOGLE_ID} = '${googleId}'", null)
-            }
-
-            if (queryUpdated.count > 0) {
-                queryUpdated.moveToFirst()
-                while (true) {
-                    updateTask(queryUpdated)
-                    if (!queryUpdated.moveToNext())
-                        break
-                }
-            }
-
-            Settings.instance.setUpdateTime(applicationContext, dateNow)
+            Settings.instance.setLocalUpdateTime(applicationContext, dateNow)
 
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             broadcast(MainActivity.BROADCAST_UPDATED)
         }
+    }
+
+    private fun handleActionUpdateRemote(accountName: String, selectedTasklist: String) {
+        fun updateTask(queryUpdated: Cursor) {
+
+            val service = getService(accountName)
+
+            val googleId = queryUpdated.getString(0)
+            var task = service.tasks().get(selectedTasklist, googleId)
+                    //.setFields("items(id,title,notes,due,completed,updated)")
+                    .execute()
+
+            if (task != null) {
+                val dbUpdated = queryUpdated.getLong(5)
+                if (dbUpdated > task.updated.value) {
+                    if (queryUpdated.getLong(6).compareTo(1) == 0) {
+                        task.updated = DateTime(dbUpdated)
+                        task.completed = DateTime(Date(), TimeZone.getDefault())
+                        task.status = "completed"
+                        service.tasks().update(selectedTasklist, googleId, task).execute()
+                    }
+                }
+            }
+
+            if (queryUpdated.getLong(6).compareTo(1) == 0)
+                contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_GOOGLE_ID} = '${googleId}'", null)
+        }
+
+        val dateNow = Date()
+
+        val lastUpdated = Settings.instance.getRemoteUpdateTime(applicationContext)
+
+        val where = "${TasksTable.KEY_UPDATED} > ${lastUpdated.time}"
+        val queryUpdated = contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(
+                TasksTable.KEY_GOOGLE_ID,
+                TasksTable.KEY_TITLE,
+                TasksTable.KEY_NOTES,
+                TasksTable.KEY_DUE,
+                TasksTable.KEY_HAS_DUE,
+                TasksTable.KEY_UPDATED,
+                TasksTable.KEY_DELETED), where, null, null)
+
+        if (queryUpdated.count > 0) {
+            queryUpdated.moveToFirst()
+            while (true) {
+                updateTask(queryUpdated)
+                if (!queryUpdated.moveToNext())
+                    break
+            }
+        }
+
+        Settings.instance.setRemoteUpdateTime(applicationContext, dateNow)
+    }
+
+    private fun getService(accountName: String): com.google.api.services.tasks.Tasks {
+        val tasksCredential = createCredential(this, accountName)
+        val transport = AndroidHttp.newCompatibleTransport()
+        val jsonFactory = JacksonFactory.getDefaultInstance()
+        return com.google.api.services.tasks.Tasks.Builder(transport, jsonFactory, tasksCredential)
+                .setApplicationName("Aufgaben")
+                .build()
     }
 
     private fun checkRemoveTask(taskTableId: String, task: Task) {
@@ -194,20 +214,35 @@ class UpdateService : IntentService("UpdateService") {
     companion object {
 
         /**
-         * Starts this service to perform action Baz with the given parameters. If
+         * Starts this service to perform Update from Google to local Database with the given parameters. If
          * the service is already performing a task this action will be queued.
 
          * @see IntentService
          */
-        fun startUpdate(context: Context, accountName: String, selectedTasklist: String) {
+        fun startUpdateLocal(context: Context, accountName: String, selectedTasklist: String) {
             val intent = Intent(context, UpdateService::class.java)
-            intent.action = ACTION_UPDATE
+            intent.action = ACTION_UPDATE_LOCAL
             intent.putExtra(EXTRA_ACCOUNT_NAME, accountName)
             intent.putExtra(EXTRA_SELECTED_TASKLIST, selectedTasklist)
             context.startService(intent)
         }
 
-        private val ACTION_UPDATE = "com.gmail.uwriegel.tasks.action.update"
+        /**
+         * Starts this service to perform Update from local Database to Google with the given parameters. If
+         * the service is already performing a task this action will be queued.
+
+         * @see IntentService
+         */
+        fun startUpdateRemote(context: Context, accountName: String, selectedTasklist: String) {
+            val intent = Intent(context, UpdateService::class.java)
+            intent.action = ACTION_UPDATE_REMOTE
+            intent.putExtra(EXTRA_ACCOUNT_NAME, accountName)
+            intent.putExtra(EXTRA_SELECTED_TASKLIST, selectedTasklist)
+            context.startService(intent)
+        }
+
+        private val ACTION_UPDATE_LOCAL = "com.gmail.uwriegel.tasks.action.update.local"
+        private val ACTION_UPDATE_REMOTE = "com.gmail.uwriegel.tasks.action.update.remote"
         private val EXTRA_ACCOUNT_NAME = "com.gmail.uwriegel.tasks.extra.ACCOUNT_NAME"
         private val EXTRA_SELECTED_TASKLIST = "com.gmail.uwriegel.tasks.extra.SELECTED_TASKLIST"
     }
