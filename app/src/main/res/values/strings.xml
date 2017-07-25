@@ -12,6 +12,7 @@
     <string name="permission_on_calendars_required">Gib\' mir Berechtigungen auf Deinen Kalender!</string>
     <string name="task">Edit Task</string>
     <string name="new_task">New Task</string>
+    <string name="save">Save</string>
 </resources>
 
 

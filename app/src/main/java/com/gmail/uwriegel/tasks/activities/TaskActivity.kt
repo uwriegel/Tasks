@@ -4,7 +4,12 @@ import android.content.ContentValues
 import android.opengl.Visibility
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.Menu
 import android.view.View
+import android.widget.CalendarView
+import android.widget.EditText
 import com.gmail.uwriegel.tasks.R
 import com.gmail.uwriegel.tasks.db.TasksContentProvider
 import com.gmail.uwriegel.tasks.db.TasksTable
@@ -15,6 +20,23 @@ class TaskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task)
+
+        editTitle.addTextChangedListener(textWatcher)
+        editNotes.addTextChangedListener(textWatcher)
+        taskDate.setOnDateChangeListener(object: CalendarView.OnDateChangeListener{
+            /**
+             * Called upon change of the selected day.
+             *
+             * @param view The view associated with this listener.
+             * @param year The year that was set.
+             * @param month The month that was set [0-11].
+             * @param dayOfMonth The day of the month that was set.
+             */
+            override fun onSelectedDayChange(view: CalendarView?, year: Int, month: Int, dayOfMonth: Int) {
+                changed = true
+                invalidateOptionsMenu()
+            }
+        })
 
         val id = intent.getStringExtra(ID)
         if (id == null)
@@ -39,9 +61,30 @@ class TaskActivity : AppCompatActivity() {
                     taskDate.visibility = View.GONE
             }
             query.close()
-
         }
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.task, menu)
+        menu.getItem(0).isVisible = changed
+        return true
+    }
+
+    val textWatcher = object: TextWatcher {
+        override fun afterTextChanged(p0: Editable?) {
+            changed = true
+            invalidateOptionsMenu()
+        }
+
+        override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+        }
+
+        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+        }
+    }
+
+    var changed = false
 
     companion object {
         internal val ID = "ID"
