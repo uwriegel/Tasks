@@ -1,9 +1,11 @@
 package com.gmail.uwriegel.tasks.activities
 
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.opengl.Visibility
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
@@ -62,6 +64,8 @@ class TaskActivity : AppCompatActivity() {
             }
             query.close()
         }
+
+        changed = false
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -69,6 +73,23 @@ class TaskActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.task, menu)
         menu.getItem(0).isVisible = changed
         return true
+    }
+
+    /**
+     * Take care of popping the fragment back stack or finishing the activity
+     * as appropriate.
+     */
+    override fun onBackPressed() {
+        if (!changed)
+            super.onBackPressed()
+        else {
+            val builder = AlertDialog.Builder(this)
+            builder.setMessage("Änderungen speichern?")
+            builder.setPositiveButton("Ok") { _, id -> Unit }
+            builder.setNegativeButton("Abbrechen") { _, _ -> super.onBackPressed() }
+            builder.create()
+            builder.show()
+        }
     }
 
     val textWatcher = object: TextWatcher {
