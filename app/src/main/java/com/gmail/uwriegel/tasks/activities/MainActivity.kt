@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             override fun showTask(id: String) {
                 val intent = Intent(this@MainActivity, TaskActivity::class.java)
                 intent.putExtra(TaskActivity.ID, id)
-                startActivity(intent)
+                startActivityForResult(intent, TASK_UPDATED)
             }
 
         }), "Native")
@@ -256,6 +256,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
                 title = getString(R.string.app_name)
             }
+            TASK_UPDATED -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    var id = data.getIntExtra(TASK_UPDATED_ID, -1)
+
+                    queryAllTasks(this@MainActivity, { tasks, calendarItems ->
+                        contentView.setTasks(tasks, calendarItems)
+                    })
+                }
+
+            }
         // REQUEST_AUTHORIZATION ->
         //if (resultCode == Activity.RESULT_OK)
         //initializeGoogleAccount();
@@ -366,6 +376,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         val REQUEST_GOOGLE_PLAY_SERVICES = 1001
         val MY_PERMISSIONS_REQUEST_READ_CALENDAR = 55
         const val REQUEST_PERMISSION_GET_ACCOUNTS = 1002
+        val TASK_UPDATED = 1003
+        val TASK_UPDATED_ID = "TaskResultId"
         val BROADCAST_RECEIVER = "com.gmail.uwriegel.tasks.BROADCAST_RECEIVER"
         val BROADCAST_TYPE = "type"
         val BROADCAST_START_UPDATE = "start"
