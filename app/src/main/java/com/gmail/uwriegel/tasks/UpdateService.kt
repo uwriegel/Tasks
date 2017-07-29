@@ -105,12 +105,14 @@ class UpdateService : IntentService("UpdateService") {
             val service = getService(accountName)
 
             val googleId = queryUpdated.getString(0)
-            var task = service.tasks().get(selectedTasklist, googleId)
-                    //.setFields("items(id,title,notes,due,completed,updated)")
-                    .execute()
+            val dbUpdated = queryUpdated.getLong(5)
 
-            if (task != null) {
-                val dbUpdated = queryUpdated.getLong(5)
+            var task: Task? = null
+            if (googleId != null)
+                task = service.tasks().get(selectedTasklist, googleId)
+                        //.setFields("items(id,title,notes,due,completed,updated)")
+                        .execute()
+            if (googleId != null && task != null) {
                 if (dbUpdated > task.updated.value) {
                     if (queryUpdated.getLong(6).compareTo(1) == 0) {
                         task.updated = DateTime(dbUpdated)
@@ -132,6 +134,22 @@ class UpdateService : IntentService("UpdateService") {
             else {
                 if (queryUpdated.getLong(6).compareTo(1) == 0)
                     contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_GOOGLE_ID} = '${googleId}'", null)
+                else {
+                    // Neue einfügen
+                    task = Task()
+                    task.updated = DateTime(dbUpdated)
+                    task.title = queryUpdated.getString(1)
+                    task.notes =  queryUpdated.getString(2)
+                    if (queryUpdated.getLong(4) == 1L)
+                        task.due =  DateTime(Date(queryUpdated.getLong(3)), TimeZone.getDefault())
+                    val taskNew = service.tasks().insert(selectedTasklist, task).execute()
+
+                    val values = ContentValues()
+                    val id = queryUpdated.getLong(7)
+                    values.put(TasksTable.KEY_GOOGLE_ID, taskNew.id)
+                    val where = "${TasksTable.KEY_ID} = ${id}"
+                    contentResolver.update(TasksContentProvider.CONTENT_URI, values, where, null)
+                }
             }
         }
 
@@ -147,7 +165,8 @@ class UpdateService : IntentService("UpdateService") {
                 TasksTable.KEY_DUE,
                 TasksTable.KEY_HAS_DUE,
                 TasksTable.KEY_UPDATED,
-                TasksTable.KEY_DELETED), where, null, null)
+                TasksTable.KEY_DELETED,
+                TasksTable.KEY_ID), where, null, null)
 
         if (queryUpdated.count > 0) {
             queryUpdated.moveToFirst()

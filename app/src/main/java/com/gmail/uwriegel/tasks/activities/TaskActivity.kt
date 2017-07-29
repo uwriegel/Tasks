@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_task.*
 import java.util.*
 import android.app.Activity
 import android.content.Intent
-
+import com.gmail.uwriegel.tasks.Settings
 
 
 class TaskActivity : AppCompatActivity() {
@@ -49,9 +49,12 @@ class TaskActivity : AppCompatActivity() {
         })
 
         val id = intent.getStringExtra(ID)
-        if (id == null)
+        if (id == null) {
             title = getString(R.string.new_task)
+            isNew = true
+        }
         else {
+            isNew = false
             val where = "${TasksTable.KEY_ID} = '${id}'"
             val query = contentResolver.query(TasksContentProvider.CONTENT_URI, arrayOf(
                     TasksTable.KEY_TITLE,
@@ -104,7 +107,7 @@ class TaskActivity : AppCompatActivity() {
         else {
             val builder = AlertDialog.Builder(this)
             builder.setMessage("Änderungen speichern?")
-            builder.setPositiveButton("Ok") { _, id ->
+            builder.setPositiveButton("Ok") { _, _ ->
                 run {
                     saveChanged()
                     super.onBackPressed()
@@ -126,7 +129,15 @@ class TaskActivity : AppCompatActivity() {
             // TODO: Unter S3 wird Datum nicht upgedated!!
             values.put(TasksTable.KEY_DUE, taskDate.date)
 
-        contentResolver.update(TasksContentProvider.CONTENT_URI, values, "${TasksTable.KEY_ID} = '${id}'", null)
+        if (isNew) {
+            var tls = Settings.instance.getTasklists(this)
+            val selectedTasklist = tls.first {  it.id == Settings.instance.selectedTasklist }
+            values.put(TasksTable.KEY_TASK_TABLE_ID, selectedTasklist.id)
+            values.put(TasksTable.KEY_HAS_DUE, if (taskDate.visibility == View.VISIBLE) 1 else 0)
+            contentResolver.insert(TasksContentProvider.CONTENT_URI, values)
+        }
+        else
+            contentResolver.update(TasksContentProvider.CONTENT_URI, values, "${TasksTable.KEY_ID} = '${id}'", null)
 
         val intent = Intent()
 
@@ -149,6 +160,7 @@ class TaskActivity : AppCompatActivity() {
 
     var changed = false
     var id: Int = 0
+    var isNew = false
 
     companion object {
         internal val ID = "ID"
