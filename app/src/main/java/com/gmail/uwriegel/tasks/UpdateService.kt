@@ -118,6 +118,13 @@ class UpdateService : IntentService("UpdateService") {
                         task.status = "completed"
                         service.tasks().update(selectedTasklist, googleId, task).execute()
                         contentResolver.delete(TasksContentProvider.CONTENT_URI, "${TasksTable.KEY_GOOGLE_ID} = '${googleId}'", null)
+                    } else {
+                        // Update
+                        task.updated = DateTime(dbUpdated)
+                        task.title = queryUpdated.getString(1)
+                        task.notes =  queryUpdated.getString(2)
+                        task.due =  DateTime(Date(queryUpdated.getLong(3)), TimeZone.getDefault())
+                        service.tasks().update(selectedTasklist, googleId, task).execute()
                     }
                 }
             }

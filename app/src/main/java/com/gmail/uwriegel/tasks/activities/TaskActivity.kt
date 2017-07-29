@@ -122,7 +122,10 @@ class TaskActivity : AppCompatActivity() {
         values.put(TasksTable.KEY_TITLE, editTitle.text.toString())
         values.put(TasksTable.KEY_NOTES, editNotes.text.toString())
         values.put(TasksTable.KEY_UPDATED, now.time)
-        values.put(TasksTable.KEY_DUE, taskDate.date)
+        if (taskDate.visibility == View.VISIBLE)
+            // TODO: Unter S3 wird Datum nicht upgedated!!
+            values.put(TasksTable.KEY_DUE, taskDate.date)
+
         contentResolver.update(TasksContentProvider.CONTENT_URI, values, "${TasksTable.KEY_ID} = '${id}'", null)
 
         val intent = Intent()
