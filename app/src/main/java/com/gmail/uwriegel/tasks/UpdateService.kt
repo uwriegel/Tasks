@@ -123,7 +123,8 @@ class UpdateService : IntentService("UpdateService") {
                         task.updated = DateTime(dbUpdated)
                         task.title = queryUpdated.getString(1)
                         task.notes =  queryUpdated.getString(2)
-                        task.due =  DateTime(Date(queryUpdated.getLong(3)), TimeZone.getDefault())
+                        if (queryUpdated.getLong(4) == 1L)
+                            task.due =  DateTime(Date(queryUpdated.getLong(3)), TimeZone.getDefault())
                         service.tasks().update(selectedTasklist, googleId, task).execute()
                     }
                 }
