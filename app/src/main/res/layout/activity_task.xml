@@ -26,7 +26,7 @@
         android:contentDescription="rtzrtztr"
         android:ems="10"
         android:hint="Titel"
-        android:inputType="text"
+        android:inputType="textCapSentences"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/taskDate"/>
@@ -40,7 +40,7 @@
         android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="Beschreibung"
-        android:inputType="textMultiLine"
+        android:inputType="textCapSentences|textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTitle"/>

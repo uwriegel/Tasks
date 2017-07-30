@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         fab.setOnClickListener {
             val intent = Intent(this, TaskActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, TASK_UPDATED)
         }
         swipeRefresh.isEnabled = false
 

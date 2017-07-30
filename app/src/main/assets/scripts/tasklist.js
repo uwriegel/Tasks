@@ -74,6 +74,7 @@ var ContentView = (function () {
         var taskSymbol = li.querySelector('.taskSymbol')
         if (hasDue) {
             var dateToday = new Date()
+            due.setHours(0, 0, 0, 0)
             var dayDiff = (due.getTime() - dateToday.getTime()) / (1000 * 3600 * 24)
             if (due <= dateToday) {
                 if (dayDiff > -1 && dayDiff <= 0) {
