@@ -108,10 +108,16 @@ class UpdateService : IntentService("UpdateService") {
             val dbUpdated = queryUpdated.getLong(5)
 
             var task: Task? = null
-            if (googleId != null)
-                task = service.tasks().get(selectedTasklist, googleId)
-                        //.setFields("items(id,title,notes,due,completed,updated)")
-                        .execute()
+            if (googleId != null) {
+                try {
+                    task = service.tasks().get(selectedTasklist, googleId)
+                            //.setFields("items(id,title,notes,due,completed,updated)")
+                            .execute()
+                } catch (ee: Exception) {
+                    val test = ee.toString()
+                    val u = 9
+                }
+            }
             if (googleId != null && task != null) {
                 if (dbUpdated > task.updated.value) {
                     if (queryUpdated.getLong(6).compareTo(1) == 0) {
